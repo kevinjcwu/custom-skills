@@ -1,0 +1,87 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "adapter-descriptor.v1",
+	"title": "Adapter descriptor",
+	"description": "What an adapter does, what it emits and which limits it enforces. not-implemented adapters must say why.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"id",
+		"status",
+		"roles",
+		"operations",
+		"emits",
+		"limits"
+	],
+	"properties": {
+		"schema": {
+			"const": "adapter-descriptor.v1"
+		},
+		"id": {
+			"$ref": "#/$defs/id"
+		},
+		"status": {
+			"type": "string",
+			"enum": ["implemented", "not-implemented"]
+		},
+		"roles": {
+			"type": "array",
+			"uniqueItems": true,
+			"items": {
+				"type": "string",
+				"enum": ["actor", "observer", "recorder", "narrator", "participant"]
+			}
+		},
+		"operations": {
+			"type": "array",
+			"uniqueItems": true,
+			"items": {
+				"$ref": "#/$defs/id"
+			}
+		},
+		"emits": {
+			"type": "array",
+			"uniqueItems": true,
+			"items": {
+				"type": "string",
+				"enum": [
+					"run.start",
+					"run.end",
+					"evidence.verified",
+					"scene.start",
+					"scene.end",
+					"action.start",
+					"action.attempt",
+					"action.end",
+					"action.skipped",
+					"expect.result",
+					"cleanup"
+				]
+			}
+		},
+		"limits": {
+			"type": "array",
+			"description": "run-authorization limits keys this adapter enforces.",
+			"uniqueItems": true,
+			"items": {
+				"type": "string",
+				"enum": ["timeoutMs", "maxOutputBytes", "maxResponseBytes", "maxRequestBytes", "killGraceMs", "retries"]
+			}
+		},
+		"blockedReason": {
+			"$ref": "#/$defs/text"
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 4000
+		}
+	}
+}

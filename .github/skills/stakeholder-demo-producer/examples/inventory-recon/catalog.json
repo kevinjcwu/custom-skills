@@ -1,0 +1,501 @@
+{
+	"schema": "capability-catalog.v1",
+	"generatedBy": {
+		"tool": "sdp-discover",
+		"contractVersion": "1"
+	},
+	"repo": {
+		"label": "inventory-recon",
+		"contentSha256": "48ea25ed74af71afb37f33fd5c3db3fe53e91fa575a2cd4399ed924985e853d1",
+		"fileCount": 12,
+		"skippedCount": 0
+	},
+	"evidence": [
+		{
+			"id": "ev.readme.md",
+			"kind": "doc",
+			"ref": {
+				"path": "README.md"
+			},
+			"sha256": "3620a9b8cf6b4f8413a4bcfa194f1749d0b38ef578f198f6b459d86ddb79f737"
+		},
+		{
+			"id": "ev.bin-recon.mjs",
+			"kind": "source",
+			"ref": {
+				"path": "bin/recon.mjs"
+			},
+			"sha256": "851b0eb5814bea054aef55d1a5b41bd74d9ab06d11cf6577b4f30fa4cfd35f6e"
+		},
+		{
+			"id": "ev.package.json",
+			"kind": "manifest",
+			"ref": {
+				"path": "package.json"
+			},
+			"sha256": "bba90f3532ec987f4ff4a58efb0c526193053859118cc1ea97689d0d8269e705"
+		},
+		{
+			"id": "ev.public-index.html",
+			"kind": "source",
+			"ref": {
+				"path": "public/index.html"
+			},
+			"sha256": "cf87b034eba0768eeab3823f98b748b3d0897525f069ee931078cf72312059e4"
+		},
+		{
+			"id": "ev.src-server.mjs",
+			"kind": "source",
+			"ref": {
+				"path": "src/server.mjs"
+			},
+			"sha256": "c0e5c199e0a187148a8acbdb42ce99fb5b69c67e96955ae0fb8641b643de7c90"
+		},
+		{
+			"id": "ev.test-cli-server.test.mjs",
+			"kind": "test",
+			"ref": {
+				"path": "test/cli-server.test.mjs"
+			},
+			"sha256": "cad3c3a3a0c4396b6a171f94245923ed6b5ea8b607b44b3dffdb3ef7fd1cbcde"
+		},
+		{
+			"id": "ev.test-reconcile.test.mjs",
+			"kind": "test",
+			"ref": {
+				"path": "test/reconcile.test.mjs"
+			},
+			"sha256": "1b105de0c63de5c94f1854d54835d0f68ebb698d2204f19d77da933453d5d5f6"
+		},
+		{
+			"id": "ev.src-csv.mjs",
+			"kind": "source",
+			"ref": {
+				"path": "src/csv.mjs"
+			},
+			"sha256": "443e8711b67ff4d5a3adf5d5c751677dade283496c0c6d18946cb525a1a73dc3"
+		},
+		{
+			"id": "ev.src-reconcile.mjs",
+			"kind": "source",
+			"ref": {
+				"path": "src/reconcile.mjs"
+			},
+			"sha256": "3e6a6e74fafd6464b73641e7e43383b289ebcc00bd256dd52b56f05b268dbb3a"
+		},
+		{
+			"id": "ev.csv-diagnostics",
+			"kind": "source",
+			"ref": {
+				"path": "src/csv.mjs",
+				"lines": {
+					"start": 1,
+					"end": 20
+				}
+			},
+			"sha256": "443e8711b67ff4d5a3adf5d5c751677dade283496c0c6d18946cb525a1a73dc3"
+		},
+		{
+			"id": "ev.reconcile-core",
+			"kind": "source",
+			"ref": {
+				"path": "src/reconcile.mjs",
+				"lines": {
+					"start": 42,
+					"end": 86
+				}
+			},
+			"sha256": "3e6a6e74fafd6464b73641e7e43383b289ebcc00bd256dd52b56f05b268dbb3a"
+		},
+		{
+			"id": "ev.recon-pipeline",
+			"kind": "source",
+			"ref": {
+				"path": "bin/recon.mjs",
+				"lines": {
+					"start": 40,
+					"end": 56
+				}
+			},
+			"sha256": "851b0eb5814bea054aef55d1a5b41bd74d9ab06d11cf6577b4f30fa4cfd35f6e"
+		},
+		{
+			"id": "ev.readme-exit-codes",
+			"kind": "doc",
+			"ref": {
+				"path": "README.md",
+				"lines": {
+					"start": 13,
+					"end": 19
+				}
+			},
+			"sha256": "3620a9b8cf6b4f8413a4bcfa194f1749d0b38ef578f198f6b459d86ddb79f737"
+		},
+		{
+			"id": "ev.server-routes",
+			"kind": "source",
+			"ref": {
+				"path": "src/server.mjs",
+				"lines": {
+					"start": 37,
+					"end": 58
+				}
+			},
+			"sha256": "c0e5c199e0a187148a8acbdb42ce99fb5b69c67e96955ae0fb8641b643de7c90"
+		},
+		{
+			"id": "ev.viewer-fetch",
+			"kind": "source",
+			"ref": {
+				"path": "public/index.html",
+				"lines": {
+					"start": 44,
+					"end": 71
+				}
+			},
+			"sha256": "cf87b034eba0768eeab3823f98b748b3d0897525f069ee931078cf72312059e4"
+		}
+	],
+	"inventory": {
+		"manifests": [
+			{
+				"evidence": "ev.package.json",
+				"kind": "package.json"
+			}
+		],
+		"entryPoints": [
+			{
+				"evidence": "ev.bin-recon.mjs",
+				"kind": "cli-candidate",
+				"name": "bin/recon.mjs"
+			},
+			{
+				"evidence": "ev.package.json",
+				"kind": "bin",
+				"name": "recon"
+			},
+			{
+				"evidence": "ev.public-index.html",
+				"kind": "html-page",
+				"name": "Inventory reconciliation"
+			},
+			{
+				"evidence": "ev.src-server.mjs",
+				"kind": "cli-candidate",
+				"name": "src/server.mjs"
+			},
+			{
+				"evidence": "ev.src-server.mjs",
+				"kind": "server-candidate",
+				"name": "src/server.mjs"
+			}
+		],
+		"tests": [
+			{
+				"evidence": "ev.test-cli-server.test.mjs",
+				"titles": [
+					"recon writes a report and summarises it (exit 0)",
+					"malformed counts exit 2 with a located diagnostic and no report",
+					"usage errors exit 2 and existing reports are never overwritten",
+					"server lists and serves reports on loopback only"
+				]
+			},
+			{
+				"evidence": "ev.test-reconcile.test.mjs",
+				"titles": [
+					"parses quoted fields, escaped quotes and CRLF",
+					"reports line and column for malformed CSV",
+					"classifies match, short, over, not counted and unexpected",
+					"rejects non-integer quantities and duplicate ledger SKUs with file and line"
+				]
+			}
+		],
+		"docs": [
+			{
+				"evidence": "ev.readme.md",
+				"headings": [
+					"inventory-recon",
+					"Command line",
+					"Viewer",
+					"Architecture",
+					"Tests"
+				]
+			}
+		],
+		"configExampleKeys": [],
+		"signals": [
+			{
+				"evidence": "ev.bin-recon.mjs",
+				"signal": "process-argv",
+				"line": 64
+			},
+			{
+				"evidence": "ev.public-index.html",
+				"signal": "browser-dom",
+				"line": 36
+			},
+			{
+				"evidence": "ev.public-index.html",
+				"signal": "browser-dom",
+				"line": 37
+			},
+			{
+				"evidence": "ev.public-index.html",
+				"signal": "browser-fetch",
+				"line": 47
+			},
+			{
+				"evidence": "ev.public-index.html",
+				"signal": "browser-dom",
+				"line": 49
+			},
+			{
+				"evidence": "ev.public-index.html",
+				"signal": "browser-fetch",
+				"line": 61
+			},
+			{
+				"evidence": "ev.src-server.mjs",
+				"signal": "http-server",
+				"line": 37
+			},
+			{
+				"evidence": "ev.src-server.mjs",
+				"signal": "http-server",
+				"line": 38
+			},
+			{
+				"evidence": "ev.src-server.mjs",
+				"signal": "http-server",
+				"line": 72
+			},
+			{
+				"evidence": "ev.src-server.mjs",
+				"signal": "process-argv",
+				"line": 82
+			},
+			{
+				"evidence": "ev.src-server.mjs",
+				"signal": "process-argv",
+				"line": 83
+			}
+		]
+	},
+	"runCommands": [
+		{
+			"id": "cmd.test",
+			"evidence": "ev.package.json",
+			"name": "test",
+			"command": "node --test \"test/*.test.mjs\"",
+			"executed": false
+		},
+		{
+			"id": "cmd.start",
+			"evidence": "ev.package.json",
+			"name": "start",
+			"command": "node src/server.mjs --reports reports",
+			"executed": false
+		}
+	],
+	"platforms": [
+		{
+			"id": "browser",
+			"name": "Web browser",
+			"class": "inferred",
+			"evidence": [
+				"ev.public-index.html"
+			],
+			"reason": "Suggested by: HTML page, signal browser-dom, signal browser-fetch. A signal is not a demonstrated capability."
+		},
+		{
+			"id": "http-service",
+			"name": "HTTP service",
+			"class": "inferred",
+			"evidence": [
+				"ev.src-server.mjs"
+			],
+			"reason": "Suggested by: signal http-server. A signal is not a demonstrated capability."
+		},
+		{
+			"id": "terminal",
+			"name": "Terminal / command line",
+			"class": "inferred",
+			"evidence": [
+				"ev.bin-recon.mjs",
+				"ev.package.json",
+				"ev.src-server.mjs"
+			],
+			"reason": "Suggested by: executable script shebang, package bin entry, signal process-argv. A signal is not a demonstrated capability."
+		}
+	],
+	"capabilities": [
+		{
+			"id": "cap.entry.cli-candidate-bin-recon.mjs",
+			"title": "Entry point (cli-candidate): bin/recon.mjs",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.bin-recon.mjs"
+			],
+			"userVisible": true
+		},
+		{
+			"id": "cap.entry.bin-recon",
+			"title": "Entry point (bin): recon",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.package.json"
+			],
+			"userVisible": true
+		},
+		{
+			"id": "cap.entry.html-page-inventory-reconciliation",
+			"title": "Entry point (html-page): Inventory reconciliation",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.public-index.html"
+			],
+			"userVisible": true
+		},
+		{
+			"id": "cap.entry.cli-candidate-src-server.mjs",
+			"title": "Entry point (cli-candidate): src/server.mjs",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.src-server.mjs"
+			],
+			"userVisible": true
+		},
+		{
+			"id": "cap.entry.server-candidate-src-server.mjs",
+			"title": "Entry point (server-candidate): src/server.mjs",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.src-server.mjs"
+			],
+			"userVisible": false
+		}
+	],
+	"components": [
+		{
+			"id": "comp.cli",
+			"name": "recon command (bin/recon.mjs)",
+			"kind": "cli",
+			"evidence": [
+				"ev.bin-recon.mjs",
+				"ev.package.json"
+			]
+		},
+		{
+			"id": "comp.csv",
+			"name": "CSV parser (src/csv.mjs)",
+			"kind": "library",
+			"evidence": [
+				"ev.src-csv.mjs"
+			]
+		},
+		{
+			"id": "comp.reconciler",
+			"name": "Reconciler (src/reconcile.mjs)",
+			"kind": "library",
+			"evidence": [
+				"ev.src-reconcile.mjs"
+			]
+		},
+		{
+			"id": "comp.report",
+			"name": "JSON report file",
+			"kind": "data",
+			"evidence": [
+				"ev.recon-pipeline"
+			]
+		},
+		{
+			"id": "comp.api",
+			"name": "Report API (src/server.mjs)",
+			"kind": "service",
+			"evidence": [
+				"ev.src-server.mjs"
+			]
+		},
+		{
+			"id": "comp.viewer",
+			"name": "Viewer page (public/index.html)",
+			"kind": "ui",
+			"evidence": [
+				"ev.public-index.html"
+			]
+		}
+	],
+	"edges": [
+		{
+			"id": "edge.cli-csv",
+			"from": "comp.cli",
+			"to": "comp.csv",
+			"label": "parses ledger and counts; errors carry line and column",
+			"class": "source-backed",
+			"evidence": [
+				"ev.recon-pipeline",
+				"ev.csv-diagnostics"
+			]
+		},
+		{
+			"id": "edge.csv-reconciler",
+			"from": "comp.csv",
+			"to": "comp.reconciler",
+			"label": "rows compared per SKU",
+			"class": "source-backed",
+			"evidence": [
+				"ev.reconcile-core"
+			]
+		},
+		{
+			"id": "edge.reconciler-report",
+			"from": "comp.reconciler",
+			"to": "comp.report",
+			"label": "written once, exclusive create",
+			"class": "source-backed",
+			"evidence": [
+				"ev.recon-pipeline"
+			]
+		},
+		{
+			"id": "edge.report-api",
+			"from": "comp.report",
+			"to": "comp.api",
+			"label": "read-only GET /api/reports",
+			"class": "source-backed",
+			"evidence": [
+				"ev.server-routes"
+			]
+		},
+		{
+			"id": "edge.api-viewer",
+			"from": "comp.api",
+			"to": "comp.viewer",
+			"label": "fetched by the page",
+			"class": "source-backed",
+			"evidence": [
+				"ev.viewer-fetch"
+			]
+		}
+	],
+	"forbiddenClaims": [
+		{
+			"id": "unevidenced-metric",
+			"pattern": "\\d+(?:[.,]\\d+)?\\s?(?:%|(?:ms|milliseconds|seconds|minutes|hours|percent|per cent|x|times (?:faster|cheaper|more|less)|users|requests per second|rps|uptime)\\b)",
+			"reason": "Quantitative claims need a recorded measurement in this run's evidence."
+		},
+		{
+			"id": "absolute-quality",
+			"pattern": "\\b(production[- ]ready|enterprise[- ]grade|secure by default|guaranteed|bug[- ]free|fully compliant)\\b",
+			"reason": "Absolute quality claims cannot be demonstrated by a demo run."
+		}
+	],
+	"unknowns": [],
+	"skipped": []
+}

@@ -1,0 +1,97 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "preflight.v1",
+	"title": "Preflight result",
+	"description": "Passive readiness check. Availability is not approval.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"catalogSha256",
+		"storyboardSha256",
+		"authorizationSha256",
+		"checks",
+		"adapters",
+		"verdict",
+		"note"
+	],
+	"properties": {
+		"schema": {
+			"const": "preflight.v1"
+		},
+		"catalogSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"storyboardSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"authorizationSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"checks": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["id", "status", "detail"],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["pass", "fail", "blocked"]
+					},
+					"detail": {
+						"$ref": "#/$defs/text"
+					}
+				}
+			}
+		},
+		"adapters": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["sceneId", "adapter", "status"],
+				"properties": {
+					"sceneId": {
+						"$ref": "#/$defs/id"
+					},
+					"adapter": {
+						"$ref": "#/$defs/id"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["supported", "blocked", "not-implemented"]
+					},
+					"reason": {
+						"$ref": "#/$defs/text"
+					}
+				}
+			}
+		},
+		"verdict": {
+			"type": "string",
+			"enum": ["ready", "blocked"]
+		},
+		"note": {
+			"const": "Availability is not approval: a ready preflight does not authorize a run."
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 4000
+		}
+	}
+}

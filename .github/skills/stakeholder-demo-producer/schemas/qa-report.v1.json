@@ -1,0 +1,132 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "qa-report.v1",
+	"title": "QA report",
+	"description": "Structural QA result. release is only valid with an independent exact-file audiovisual review of an export artifact listed in the manifest.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"runId",
+		"manifestSha256",
+		"claimLedgerSha256",
+		"reviewer",
+		"checks",
+		"verdict",
+		"limitations"
+	],
+	"properties": {
+		"schema": {
+			"const": "qa-report.v1"
+		},
+		"runId": {
+			"$ref": "#/$defs/runId"
+		},
+		"manifestSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"claimLedgerSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"reviewer": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "id"],
+			"properties": {
+				"kind": {
+					"type": "string",
+					"enum": ["structural-tool", "independent-human", "independent-agent"]
+				},
+				"id": {
+					"type": "string",
+					"minLength": 1,
+					"maxLength": 200
+				}
+			}
+		},
+		"checks": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["id", "status", "detail"],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["pass", "fail", "blocked"]
+					},
+					"detail": {
+						"$ref": "#/$defs/text"
+					}
+				}
+			}
+		},
+		"verdict": {
+			"type": "string",
+			"enum": ["structural-pass", "fail", "blocked", "release"]
+		},
+		"limitations": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/text"
+			}
+		},
+		"audiovisualReview": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"exportPath",
+				"exportSha256",
+				"watchedAndListened",
+				"reviewer",
+				"notes"
+			],
+			"properties": {
+				"exportPath": {
+					"$ref": "#/$defs/relativePath"
+				},
+				"exportSha256": {
+					"$ref": "#/$defs/sha256"
+				},
+				"watchedAndListened": {
+					"type": "boolean"
+				},
+				"reviewer": {
+					"type": "string",
+					"minLength": 1,
+					"maxLength": 200
+				},
+				"notes": {
+					"$ref": "#/$defs/text"
+				}
+			}
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 4000
+		},
+		"relativePath": {
+			"type": "string",
+			"maxLength": 4096,
+			"x-sdp-path": "relative"
+		},
+		"runId": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+		}
+	}
+}

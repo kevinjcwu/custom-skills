@@ -1,0 +1,151 @@
+{
+	"schema": "sdp-tool-lock.v1",
+	"platform": {
+		"os": "linux",
+		"arch": "x64",
+		"distro": "ubuntu-22.04",
+		"note": "Other platforms are reported blocked by `sdp setup check`; nothing here claims universal support."
+	},
+	"npm": {
+		"manifest": "package.json",
+		"lock": "package-lock.json",
+		"lifecycleScripts": "disabled (--ignore-scripts); required post-steps are the explicit `files` entries below",
+		"packages": [
+			{
+				"name": "playwright-core",
+				"version": "1.64.1",
+				"license": "Apache-2.0"
+			},
+			{
+				"name": "ffmpeg-static",
+				"version": "5.3.0",
+				"license": "GPL-3.0-or-later"
+			},
+			{
+				"name": "@ffprobe-installer/ffprobe",
+				"version": "2.1.2",
+				"license": "LGPL-2.1"
+			},
+			{
+				"name": "@ffprobe-installer/linux-x64",
+				"version": "5.2.0",
+				"license": "GPL-3.0",
+				"postStep": "chmod 0755 ffprobe (replaces its postinstall `chmod u+x ffprobe`)"
+			}
+		]
+	},
+	"files": [
+		{
+			"id": "ffmpeg",
+			"description": "The binary ffmpeg-static 5.3.0 would download (its binary-release-tag b6.1.1), fetched explicitly instead of running install.js",
+			"url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz",
+			"size": 29354986,
+			"sha256": "bfe8a8fc511530457b528c48d77b5737527b504a3797a9bc4866aeca69c2dffa",
+			"gunzip": {
+				"sha256": "e7e7fb30477f717e6f55f9180a70386c62677ef8a4d4d1a5d948f4098aa3eb99"
+			},
+			"dest": "node/node_modules/ffmpeg-static/ffmpeg",
+			"mode": 493,
+			"license": "GPL-3.0 (static build); kept local, not redistributed"
+		},
+		{
+			"id": "ffmpeg-license",
+			"url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/linux-x64.LICENSE",
+			"size": 35147,
+			"sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+			"dest": "node/node_modules/ffmpeg-static/ffmpeg.LICENSE",
+			"license": "license text"
+		},
+		{
+			"id": "ffmpeg-readme",
+			"url": "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/linux-x64.README",
+			"size": 2235,
+			"sha256": "72f4b1b06d419d22ace6e7cc75f06826f90737345aa0b1736158929f4aacc537",
+			"dest": "node/node_modules/ffmpeg-static/ffmpeg.README",
+			"license": "build notes"
+		},
+		{
+			"id": "voice-ljspeech-high-model",
+			"description": "Piper voice en_US-ljspeech-high, revision-pinned",
+			"url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/en/en_US/ljspeech/high/en_US-ljspeech-high.onnx",
+			"size": 114199011,
+			"sha256": "5d4f08ba6a2a48c44592eed3ce56bf85e9de3dd4e20df90541ae68a8310c029a",
+			"dest": "voices/en_US-ljspeech-high.onnx",
+			"license": "voice repository MIT; LJ Speech dataset public domain"
+		},
+		{
+			"id": "voice-ljspeech-high-config",
+			"url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/en/en_US/ljspeech/high/en_US-ljspeech-high.onnx.json",
+			"size": 4970,
+			"gitBlob": "e4c9cbdf41a9c5fadd5eb7633513435342184918",
+			"dest": "voices/en_US-ljspeech-high.onnx.json",
+			"license": "MIT"
+		},
+		{
+			"id": "voice-ljspeech-high-card",
+			"url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/en/en_US/ljspeech/high/MODEL_CARD",
+			"size": 513,
+			"gitBlob": "ddd2c7524cadf38f78a9b268ad957079e9815383",
+			"dest": "voices/en_US-ljspeech-high.MODEL_CARD",
+			"license": "MIT"
+		}
+	],
+	"python": {
+		"interpreter": "python3.12 found by uv (UV_PYTHON_DOWNLOADS=never)",
+		"requirements": "piper-requirements.txt",
+		"install": "uv venv + uv pip install --require-hashes --no-deps",
+		"licenses": {
+			"piper-tts": "GPL-3.0-or-later (bundles espeak-ng data, GPL-3.0)",
+			"onnxruntime": "MIT",
+			"numpy": "BSD-3-Clause",
+			"flatbuffers": "Apache-2.0",
+			"protobuf": "BSD-3-Clause",
+			"packaging": "Apache-2.0 OR BSD-2-Clause",
+			"pathvalidate": "MIT"
+		}
+	},
+	"debs": {
+		"archive": "http://archive.ubuntu.com/ubuntu/",
+		"note": "Official Ubuntu jammy archive; sha256 values are those of the signed apt index. Extracted with dpkg-deb -x into sysroot/, never installed system-wide. Only the shared libraries the pinned Chromium needs and the host may lack.",
+		"packages": [
+			{
+				"package": "libnss3",
+				"version": "2:3.98-0ubuntu0.22.04.5",
+				"size": 1345528,
+				"sha256": "75f3879ab9969a930b5bf4b9229345d57e2ebe310ad8ce58c9d91393d823b236",
+				"path": "pool/main/n/nss/libnss3_3.98-0ubuntu0.22.04.5_amd64.deb",
+				"license": "MPL-2.0",
+				"provenance": "jammy-updates InRelease (Date 2026-10-29 02:29:51 UTC, Ubuntu Archive Automatic Signing Key 2018) -> main/binary-amd64/Packages.gz; supersedes 2:3.98-0ubuntu0.22.04.4 removed from the pool"
+			},
+			{
+				"package": "libnspr4",
+				"version": "2:4.35-0ubuntu0.22.04.1",
+				"size": 119208,
+				"sha256": "b3c96e4a61675c87f8d9655109346748847d859abc95f20493159d06b5aa30ef",
+				"path": "pool/main/n/nspr/libnspr4_4.35-0ubuntu0.22.04.1_amd64.deb",
+				"license": "MPL-2.0"
+			},
+			{
+				"package": "libasound2",
+				"version": "1.2.6.1-1ubuntu1.2",
+				"size": 390788,
+				"sha256": "dce4ce1043cde35f4bc375a4b1bd84badd5dec7e656ea2a8849edf9215bc8c33",
+				"path": "pool/main/a/alsa-lib/libasound2_1.2.6.1-1ubuntu1.2_amd64.deb",
+				"license": "LGPL-2.1+"
+			},
+			{
+				"package": "libasound2-data",
+				"version": "1.2.6.1-1ubuntu1.2",
+				"size": 19318,
+				"sha256": "e175a0617ae4a35667a9cf159ee5ee226d09ad43ed7719b721a7ea797974f65c",
+				"path": "pool/main/a/alsa-lib/libasound2-data_1.2.6.1-1ubuntu1.2_all.deb",
+				"license": "LGPL-2.1+"
+			}
+		]
+	},
+	"browser": {
+		"installer": "playwright-core 1.64.1 cli `install chromium` into ms-playwright/",
+		"identity": "Playwright's CDN publishes no checksum: the installed revision and executable sha256 are recorded on first install in installed.json and verified on every later check (trust on first use, disclosed).",
+		"license": "Chromium BSD-3-Clause plus bundled third-party notices; kept local"
+	}
+}

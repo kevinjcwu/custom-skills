@@ -1,0 +1,213 @@
+{
+	"schema": "capability-catalog.v1",
+	"generatedBy": {
+		"tool": "sdp-discover",
+		"contractVersion": "1"
+	},
+	"repo": {
+		"label": "cli-api fixture",
+		"contentSha256": "7c2d8d321a4a2e2a092206027ea35218a6eaf1c64e49f6bfaaaf9201ca0d83b3",
+		"fileCount": 6,
+		"skippedCount": 0
+	},
+	"evidence": [
+		{
+			"id": "ev.readme.md",
+			"kind": "doc",
+			"ref": {
+				"path": "README.md"
+			},
+			"sha256": "270ab9fe8df89bfb470f33af17137fa51ef183bd281c70e94ccc43f3ef5c7b93"
+		},
+		{
+			"id": "ev.bin-tally.mjs",
+			"kind": "source",
+			"ref": {
+				"path": "bin/tally.mjs"
+			},
+			"sha256": "3f6186224f06bc69bc6bd02fffae12f6b6898f096a350ac37d36e153121390f9"
+		},
+		{
+			"id": "ev.package.json",
+			"kind": "manifest",
+			"ref": {
+				"path": "package.json"
+			},
+			"sha256": "6583114998fa07809661f0a168b461384680170b9fea6e3929e9129d7d2692f5"
+		},
+		{
+			"id": "ev.server-server.mjs",
+			"kind": "source",
+			"ref": {
+				"path": "server/server.mjs"
+			},
+			"sha256": "f738ef5be89bd7286f5333f9ff1436bc0c2e6e74343423638a8c3e228219e987"
+		},
+		{
+			"id": "ev.tests-tally.test.mjs",
+			"kind": "test",
+			"ref": {
+				"path": "tests/tally.test.mjs"
+			},
+			"sha256": "fcf5171d701af71daaba0000b79008791f0766f11682bd59868a57624188b367"
+		}
+	],
+	"inventory": {
+		"manifests": [
+			{
+				"evidence": "ev.package.json",
+				"kind": "package.json"
+			}
+		],
+		"entryPoints": [
+			{
+				"evidence": "ev.bin-tally.mjs",
+				"kind": "cli-candidate",
+				"name": "bin/tally.mjs"
+			},
+			{
+				"evidence": "ev.package.json",
+				"kind": "bin",
+				"name": "tally"
+			},
+			{
+				"evidence": "ev.server-server.mjs",
+				"kind": "server-candidate",
+				"name": "server/server.mjs"
+			}
+		],
+		"tests": [
+			{
+				"evidence": "ev.tests-tally.test.mjs",
+				"titles": [
+					"counts added items",
+					"reports health"
+				]
+			}
+		],
+		"docs": [
+			{
+				"evidence": "ev.readme.md",
+				"headings": [
+					"Task Tally",
+					"Counting items",
+					"Health endpoint"
+				]
+			}
+		],
+		"configExampleKeys": [],
+		"signals": [
+			{
+				"evidence": "ev.bin-tally.mjs",
+				"signal": "process-argv",
+				"line": 7
+			},
+			{
+				"evidence": "ev.server-server.mjs",
+				"signal": "http-server",
+				"line": 12
+			}
+		]
+	},
+	"runCommands": [
+		{
+			"id": "cmd.start",
+			"evidence": "ev.package.json",
+			"name": "start",
+			"command": "node scripts/mark-executed.mjs",
+			"executed": false
+		},
+		{
+			"id": "cmd.test",
+			"evidence": "ev.package.json",
+			"name": "test",
+			"command": "node scripts/mark-executed.mjs",
+			"executed": false
+		}
+	],
+	"platforms": [
+		{
+			"id": "http-service",
+			"name": "HTTP service",
+			"class": "inferred",
+			"evidence": [
+				"ev.server-server.mjs"
+			],
+			"reason": "Suggested by: signal http-server. A signal is not a demonstrated capability."
+		},
+		{
+			"id": "terminal",
+			"name": "Terminal / command line",
+			"class": "inferred",
+			"evidence": [
+				"ev.bin-tally.mjs",
+				"ev.package.json"
+			],
+			"reason": "Suggested by: executable script shebang, package bin entry, signal process-argv. A signal is not a demonstrated capability."
+		}
+	],
+	"capabilities": [
+		{
+			"id": "cap.entry.cli-candidate-bin-tally.mjs",
+			"title": "Entry point (cli-candidate): bin/tally.mjs",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.bin-tally.mjs"
+			],
+			"userVisible": true
+		},
+		{
+			"id": "cap.entry.bin-tally",
+			"title": "Entry point (bin): tally",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.package.json"
+			],
+			"userVisible": true
+		},
+		{
+			"id": "cap.entry.server-candidate-server-server.mjs",
+			"title": "Entry point (server-candidate): server/server.mjs",
+			"class": "fact",
+			"provenance": "inventory",
+			"evidence": [
+				"ev.server-server.mjs"
+			],
+			"userVisible": false
+		}
+	],
+	"components": [],
+	"edges": [],
+	"forbiddenClaims": [
+		{
+			"id": "unevidenced-metric",
+			"pattern": "\\d+(?:[.,]\\d+)?\\s?(?:%|(?:ms|milliseconds|seconds|minutes|hours|percent|per cent|x|times (?:faster|cheaper|more|less)|users|requests per second|rps|uptime)\\b)",
+			"reason": "Quantitative claims need a recorded measurement in this run's evidence."
+		},
+		{
+			"id": "absolute-quality",
+			"pattern": "\\b(production[- ]ready|enterprise[- ]grade|secure by default|guaranteed|bug[- ]free|fully compliant)\\b",
+			"reason": "Absolute quality claims cannot be demonstrated by a demo run."
+		}
+	],
+	"unknowns": [
+		{
+			"id": "unknown.audience",
+			"question": "Who is the audience (business, engineering or both) and what decision should the demo support?",
+			"impact": "Determines narration mode and which journey to show."
+		},
+		{
+			"id": "unknown.confidentiality",
+			"question": "May repository content appear on screen, or must every visible value be synthetic?",
+			"impact": "Determines storyboard confidentiality and data provenance."
+		},
+		{
+			"id": "unknown.execution-authority",
+			"question": "Who may approve running commands or contacting services, and which ones?",
+			"impact": "Nothing runs until a human confirms the run authorization hash."
+		}
+	],
+	"skipped": []
+}

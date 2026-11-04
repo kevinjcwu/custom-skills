@@ -1,0 +1,14 @@
+{
+	"name": "inventory-recon",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Synthetic stock-ledger vs physical-count reconciler (demo fixture).",
+	"type": "module",
+	"bin": { "recon": "bin/recon.mjs" },
+	"scripts": {
+		"test": "node --test \"test/*.test.mjs\"",
+		"start": "node src/server.mjs --reports reports"
+	},
+	"engines": { "node": ">=24" },
+	"license": "MIT"
+}

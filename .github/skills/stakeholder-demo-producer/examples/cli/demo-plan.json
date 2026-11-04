@@ -1,0 +1,211 @@
+{
+	"schema": "demo-plan.v1",
+	"catalogSha256": "673524a6573981f68108f5574342ee962da635205670a14efd1722cbae6c9161",
+	"voices": {
+		"narrator": "Narrator (generated voice)"
+	},
+	"features": [
+		{
+			"capability": "cap.entry.cli-candidate-bin-tally.mjs",
+			"scenes": [
+				"scene.tally"
+			]
+		},
+		{
+			"capability": "cap.entry.bin-tally",
+			"omitted": {
+				"reason": "not part of this short demo"
+			}
+		}
+	],
+	"helpers": [
+		{
+			"id": "helper.seed",
+			"source": "plan-dir",
+			"file": "seed-items.mjs",
+			"sha256": "cb33404dbf977b72e2c864136f78d4bdeca2d8b0757e022accf975113d6ac5a5",
+			"purpose": "print the synthetic sample items for this demo; the repository ships no sample data"
+		}
+	],
+	"externalDestinations": [],
+	"estimate": {
+		"cloud": false,
+		"amountUsd": null,
+		"basis": "everything runs on this machine",
+		"maxRunSeconds": 120
+	},
+	"allowArchitectureCards": false,
+	"storyboard": {
+		"schema": "storyboard.v1",
+		"catalogSha256": "673524a6573981f68108f5574342ee962da635205670a14efd1722cbae6c9161",
+		"title": "Tally walkthrough",
+		"goal": "Show how items are counted and served",
+		"audiences": [
+			"business",
+			"engineering"
+		],
+		"confidentiality": {
+			"onScreen": "synthetic-only",
+			"exportAudience": "internal"
+		},
+		"clarifications": [],
+		"dataProvenance": [
+			{
+				"id": "data.synthetic",
+				"kind": "synthetic",
+				"description": "fixed item names alpha and beta",
+				"rightsConfirmed": true
+			}
+		],
+		"claims": [
+			{
+				"id": "claim.tally",
+				"text": "The tally command counts and lists the items it is given",
+				"class": "observed",
+				"evidence": [
+					"ev.bin-tally.mjs"
+				],
+				"demonstratedBy": [
+					"act.tally"
+				],
+				"capability": "cap.entry.cli-candidate-bin-tally.mjs"
+			},
+			{
+				"id": "claim.tests",
+				"text": "The counting logic is probably covered by unit tests",
+				"class": "inferred",
+				"evidence": [],
+				"demonstratedBy": []
+			}
+		],
+		"scenes": [
+			{
+				"id": "scene.tally",
+				"title": "Counting items from the terminal",
+				"adapter": "process",
+				"capabilities": [
+					"cap.entry.cli-candidate-bin-tally.mjs"
+				],
+				"dataProvenance": [
+					"data.synthetic"
+				],
+				"actions": [
+					{
+						"id": "act.seed",
+						"op": "run",
+						"ref": "cmd.seed"
+					},
+					{
+						"id": "act.tally",
+						"op": "run",
+						"ref": "cmd.tally"
+					}
+				],
+				"expect": [
+					{
+						"id": "exp.tally.exit",
+						"action": "act.tally",
+						"check": "exitCode",
+						"value": 0
+					},
+					{
+						"id": "exp.tally.out",
+						"action": "act.tally",
+						"check": "stdoutIncludes",
+						"value": "items: alpha, beta"
+					},
+					{
+						"id": "exp.seed.out",
+						"action": "act.seed",
+						"check": "stdoutIncludes",
+						"value": "sample items ready"
+					}
+				],
+				"narration": [
+					{
+						"id": "nar.tally.business",
+						"audience": "business",
+						"text": "One short command turns a list of items into a readable summary.",
+						"claims": [
+							"claim.tally"
+						],
+						"caption": {
+							"source": "narration-text",
+							"provenance": "agent-drafted"
+						}
+					},
+					{
+						"id": "nar.tally.engineering",
+						"audience": "engineering",
+						"text": "bin/tally.mjs add writes the item count and list to stdout and exits zero.",
+						"claims": [
+							"claim.tally"
+						],
+						"caption": {
+							"source": "narration-text",
+							"provenance": "agent-drafted"
+						}
+					}
+				]
+			}
+		]
+	},
+	"runtime": {
+		"subject": "target",
+		"bindings": {
+			"targetRoot": "/path/to/cli-app",
+			"runDir": "/path/to/demo-runs",
+			"executables": [
+				{
+					"id": "node",
+					"path": "/path/to/node"
+				}
+			]
+		},
+		"commands": [
+			{
+				"id": "cmd.seed",
+				"executable": "node",
+				"argv": [
+					"{workspace}/helpers/seed-items.mjs"
+				],
+				"cwd": ".",
+				"env": [],
+				"envPassthrough": []
+			},
+			{
+				"id": "cmd.tally",
+				"executable": "node",
+				"argv": [
+					"bin/tally.mjs",
+					"add",
+					"alpha",
+					"beta"
+				],
+				"cwd": ".",
+				"env": [],
+				"envPassthrough": []
+			}
+		],
+		"network": "none",
+		"http": {
+			"requests": []
+		},
+		"limits": {
+			"timeoutMs": 10000,
+			"maxOutputBytes": 65536,
+			"maxResponseBytes": 65536,
+			"maxRequestBytes": 4096,
+			"killGraceMs": 500,
+			"retries": 0
+		},
+		"stopConditions": [
+			"first-failure",
+			"cancellation",
+			"limit-exceeded"
+		],
+		"workspace": {
+			"dirs": []
+		}
+	}
+}

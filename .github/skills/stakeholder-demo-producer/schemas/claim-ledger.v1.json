@@ -1,0 +1,108 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "claim-ledger.v1",
+	"title": "Claim ledger",
+	"description": "Verdict for every storyboard claim against catalog evidence and run actions.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["schema", "runId", "manifestSha256", "claims"],
+	"properties": {
+		"schema": {
+			"const": "claim-ledger.v1"
+		},
+		"runId": {
+			"$ref": "#/$defs/runId"
+		},
+		"manifestSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"claims": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"class",
+					"verdict",
+					"reason",
+					"evidence",
+					"narration"
+				],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"class": {
+						"$ref": "#/$defs/evidenceClass"
+					},
+					"verdict": {
+						"type": "string",
+						"enum": ["supported", "unsupported", "not-asserted"]
+					},
+					"reason": {
+						"$ref": "#/$defs/text"
+					},
+					"evidence": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["type", "ref"],
+							"properties": {
+								"type": {
+									"type": "string",
+									"enum": ["catalog-evidence", "run-action"]
+								},
+								"ref": {
+									"$ref": "#/$defs/id"
+								}
+							}
+						}
+					},
+					"narration": {
+						"$ref": "#/$defs/idList"
+					}
+				}
+			}
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"idList": {
+			"type": "array",
+			"uniqueItems": true,
+			"maxItems": 1000,
+			"items": {
+				"$ref": "#/$defs/id"
+			}
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 4000
+		},
+		"evidenceClass": {
+			"type": "string",
+			"enum": [
+				"fact",
+				"observed",
+				"source-backed",
+				"documented",
+				"inferred",
+				"unknown"
+			]
+		},
+		"runId": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+		}
+	}
+}

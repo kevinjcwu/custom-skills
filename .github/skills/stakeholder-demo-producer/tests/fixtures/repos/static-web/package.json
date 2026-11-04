@@ -1,0 +1,9 @@
+{
+	"name": "recipe-cards",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"start": "node scripts/mark-executed.mjs",
+		"test": "node scripts/mark-executed.mjs"
+	}
+}

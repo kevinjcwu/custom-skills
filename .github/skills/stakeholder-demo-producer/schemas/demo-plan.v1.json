@@ -1,0 +1,206 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "demo-plan.v1",
+	"title": "Demo plan",
+	"description": "The one document a human approves before a demo is produced: the storyboard (scenes, narration), how to run the app (runtime: an authorization without its schema and storyboard hash, including any run-local interaction helpers), which user-visible features are shown or omitted and why, the narrator label, approved helper files, outside destinations the app may reach, and a cost estimate. Approval is the human passing its sha256 to `sdp demo --confirm-plan-sha256`; nothing inside the file grants approval.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"catalogSha256",
+		"voices",
+		"features",
+		"helpers",
+		"externalDestinations",
+		"estimate",
+		"allowArchitectureCards",
+		"storyboard",
+		"runtime"
+	],
+	"properties": {
+		"schema": {
+			"const": "demo-plan.v1"
+		},
+		"catalogSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"voices": {
+			"type": "object",
+			"description": "On-screen and caption label of the narrator, the generated voice that explains what is on screen in every demo. Media from run-local helpers are labelled by their authorization media entries, not here.",
+			"additionalProperties": false,
+			"required": [
+				"narrator"
+			],
+			"properties": {
+				"narrator": {
+					"$ref": "#/$defs/label"
+				}
+			}
+		},
+		"features": {
+			"type": "array",
+			"description": "One entry per user-visible catalog capability: the scenes that show it, or why it is left out.",
+			"maxItems": 512,
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"capability"
+				],
+				"properties": {
+					"capability": {
+						"$ref": "#/$defs/id"
+					},
+					"scenes": {
+						"type": "array",
+						"minItems": 1,
+						"maxItems": 64,
+						"uniqueItems": true,
+						"items": {
+							"$ref": "#/$defs/id"
+						}
+					},
+					"omitted": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": [
+							"reason"
+						],
+						"properties": {
+							"reason": {
+								"$ref": "#/$defs/text"
+							}
+						}
+					}
+				}
+			}
+		},
+		"helpers": {
+			"type": "array",
+			"description": "Small approved files (for example a static file server for a page with no server of its own) copied into the run workspace as helpers/<file> after their sha256 is checked. Commands refer to them as {workspace}/helpers/<file>. They run with the same limits as the app.",
+			"maxItems": 16,
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"source",
+					"file",
+					"sha256",
+					"purpose"
+				],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"source": {
+						"type": "string",
+						"description": "skill: a file bundled in this skill's scripts/helpers; plan-dir: a file in a helpers folder next to the plan file.",
+						"enum": [
+							"skill",
+							"plan-dir"
+						]
+					},
+					"file": {
+						"type": "string",
+						"pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$"
+					},
+					"sha256": {
+						"$ref": "#/$defs/sha256"
+					},
+					"purpose": {
+						"$ref": "#/$defs/text"
+					}
+				}
+			}
+		},
+		"externalDestinations": {
+			"type": "array",
+			"description": "Hosts outside this machine that the app's own processes are expected to reach (for example a cloud AI endpoint). Declared so the human sees them; the browser is still limited to the app's loopback origin, but app processes are not network-sandboxed in the default path.",
+			"maxItems": 32,
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"host",
+					"purpose"
+				],
+				"properties": {
+					"host": {
+						"type": "string",
+						"pattern": "^[A-Za-z0-9.-]{1,253}$"
+					},
+					"purpose": {
+						"$ref": "#/$defs/text"
+					}
+				}
+			}
+		},
+		"estimate": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"cloud",
+				"amountUsd",
+				"basis",
+				"maxRunSeconds"
+			],
+			"properties": {
+				"cloud": {
+					"type": "boolean",
+					"description": "Whether the run uses paid services."
+				},
+				"amountUsd": {
+					"type": [
+						"number",
+						"null"
+					],
+					"description": "Estimated worst-case spend for one demo run; null when cloud is false.",
+					"minimum": 0,
+					"maximum": 100000
+				},
+				"basis": {
+					"$ref": "#/$defs/text"
+				},
+				"maxRunSeconds": {
+					"type": "integer",
+					"description": "Whole-run time limit; the run is cancelled and cleaned up when it is reached.",
+					"minimum": 10,
+					"maximum": 7200
+				}
+			}
+		},
+		"allowArchitectureCards": {
+			"type": "boolean",
+			"description": "A product demo shows the running app, not slides. Only when true may scenes carry an architecture diagram card."
+		},
+		"storyboard": {
+			"type": "object",
+			"description": "A complete storyboard.v1, checked with that contract."
+		},
+		"runtime": {
+			"type": "object",
+			"description": "A run-authorization.v1 without schema, storyboardSha256 and approvalRecord, checked with that contract after the storyboard hash is added."
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		},
+		"label": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 60
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 2000
+		}
+	}
+}

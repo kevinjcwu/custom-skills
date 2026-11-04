@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inventory reconciliation</title>
+<style>
+	body { font: 20px/1.4 system-ui, sans-serif; margin: 0; background: #f4f6f8; color: #1d2733; }
+	header { background: #1d3557; color: #fff; padding: 18px 32px; font-size: 28px; font-weight: 600; }
+	main { display: grid; grid-template-columns: 300px 1fr; gap: 24px; padding: 24px 32px; }
+	nav button { display: block; width: 100%; margin-bottom: 10px; padding: 12px; font: inherit; text-align: left; border: 2px solid #c9d3de; border-radius: 8px; background: #fff; cursor: pointer; }
+	nav button[aria-current="true"] { border-color: #1d3557; background: #e3ecf7; }
+	table { border-collapse: collapse; width: 100%; background: #fff; }
+	th, td { padding: 10px 14px; border-bottom: 1px solid #dde3ea; text-align: left; }
+	td.num { text-align: right; font-variant-numeric: tabular-nums; }
+	tr.short td { background: #fdecea; }
+	tr.over td { background: #fff4e0; }
+	tr.not-counted td, tr.unexpected td { background: #eef0ff; }
+	.badge { font-weight: 600; }
+	#summary { margin-bottom: 16px; font-size: 22px; }
+	#empty { color: #5a6b7d; }
+</style>
+</head>
+<body>
+<header>Inventory reconciliation</header>
+<main>
+	<nav aria-label="Reports" data-testid="report-list"><p id="empty">No reports yet.</p></nav>
+	<section aria-live="polite">
+		<div id="summary" data-testid="summary">Select a report.</div>
+		<table data-testid="variance-table" hidden>
+			<thead><tr><th>SKU</th><th>Description</th><th>Expected</th><th>Counted</th><th>Variance</th><th>Status</th></tr></thead>
+			<tbody></tbody>
+		</table>
+	</section>
+</main>
+<script>
+	const list = document.querySelector("nav");
+	const table = document.querySelector("table");
+	const cell = (text, className) => {
+		const td = document.createElement("td");
+		td.textContent = text ?? "—";
+		if (className) td.className = className;
+		return td;
+	};
+	async function show(id, button) {
+		for (const other of list.querySelectorAll("button")) other.removeAttribute("aria-current");
+		button.setAttribute("aria-current", "true");
+		const report = await (await fetch(`/api/reports/${encodeURIComponent(id)}`)).json();
+		const s = report.summary;
+		document.querySelector("#summary").textContent = `Report ${report.id}: ${s.skus} SKUs — ${s.match} match, ${s.short} short, ${s.over} over, ${s["not-counted"]} not counted, ${s.unexpected} unexpected`;
+		const body = table.querySelector("tbody");
+		body.replaceChildren(...report.rows.map((row) => {
+			const tr = document.createElement("tr");
+			tr.className = row.status;
+			const variance = row.variance === null ? null : row.variance > 0 ? `+${row.variance}` : String(row.variance);
+			tr.append(cell(row.sku), cell(row.description), cell(row.expected, "num"), cell(row.counted, "num"), cell(variance, "num"), cell(row.status, "badge"));
+			return tr;
+		}));
+		table.hidden = false;
+	}
+	async function load() {
+		const reports = await (await fetch("/api/reports")).json();
+		if (reports.length === 0) return;
+		list.replaceChildren(...reports.map((report) => {
+			const button = document.createElement("button");
+			button.textContent = `${report.id} (${report.inputs.counts})`;
+			button.dataset.reportId = report.id;
+			button.addEventListener("click", () => show(report.id, button));
+			return button;
+		}));
+	}
+	load();
+</script>
+</body>
+</html>

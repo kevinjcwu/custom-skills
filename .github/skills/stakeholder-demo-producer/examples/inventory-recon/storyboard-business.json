@@ -1,0 +1,336 @@
+{
+	"schema": "storyboard.v1",
+	"catalogSha256": "0f651313fcf3a7367543eea2ee091e249ffb198cbfe143e8d6db18620badb4f6",
+	"title": "Inventory reconciliation: discrepancies surfaced before acting",
+	"goal": "Show that stock discrepancies are surfaced from a checked count and that a malformed count is stopped with a clear message",
+	"audiences": [
+		"business"
+	],
+	"confidentiality": {
+		"onScreen": "synthetic-only",
+		"exportAudience": "internal evaluation of the stakeholder-demo-producer skill"
+	},
+	"clarifications": [
+		{
+			"id": "clar.audience",
+			"question": "Who is the audience and what decision should the demo support?",
+			"answer": "Business stakeholders deciding whether count discrepancies are surfaced before acting (released plan storyboard C)",
+			"source": "default-assumption"
+		},
+		{
+			"id": "clar.confidentiality",
+			"question": "May repository content appear on screen?",
+			"answer": "Only the bundled synthetic fixture and its invented data appear",
+			"source": "default-assumption"
+		}
+	],
+	"dataProvenance": [
+		{
+			"id": "data.synthetic",
+			"kind": "synthetic",
+			"description": "Invented ledger and count CSV files bundled with the inventory-recon fixture",
+			"rightsConfirmed": true
+		}
+	],
+	"claims": [
+		{
+			"id": "claim.reconcile",
+			"text": "The recon command reconciles the synthetic ledger against the synthetic counts and writes a report",
+			"class": "observed",
+			"evidence": [
+				"ev.bin-recon.mjs"
+			],
+			"demonstratedBy": [
+				"act.reconcile"
+			],
+			"capability": "cap.entry.bin-recon"
+		},
+		{
+			"id": "claim.viewer",
+			"text": "The viewer lists the report and shows each SKU's variance status",
+			"class": "observed",
+			"evidence": [
+				"ev.public-index.html"
+			],
+			"demonstratedBy": [
+				"act.open",
+				"act.select"
+			],
+			"capability": "cap.entry.html-page-inventory-reconciliation"
+		},
+		{
+			"id": "claim.statuses",
+			"text": "Each SKU is classified as match, short, over, not counted or unexpected",
+			"class": "documented",
+			"evidence": [
+				"ev.readme.md"
+			],
+			"demonstratedBy": []
+		},
+		{
+			"id": "claim.reject",
+			"text": "Malformed counts are rejected with a file, line and column diagnostic and no report is written",
+			"class": "observed",
+			"evidence": [
+				"ev.recon-pipeline"
+			],
+			"demonstratedBy": [
+				"act.malformed"
+			],
+			"capability": "cap.entry.bin-recon"
+		},
+		{
+			"id": "claim.no-new-report",
+			"text": "After the rejected input the viewer still lists only the earlier report",
+			"class": "observed",
+			"evidence": [],
+			"demonstratedBy": [
+				"act.relisted"
+			],
+			"capability": "cap.entry.html-page-inventory-reconciliation"
+		},
+		{
+			"id": "claim.synthetic",
+			"text": "All data in the fixture is invented",
+			"class": "documented",
+			"evidence": [
+				"ev.readme.md"
+			],
+			"demonstratedBy": []
+		}
+	],
+	"scenes": [
+		{
+			"id": "scene.reconcile",
+			"title": "Reconcile the counts against the ledger",
+			"adapter": "process",
+			"capabilities": [
+				"cap.entry.bin-recon"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.reconcile",
+					"op": "run",
+					"ref": "cmd.reconcile"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.reconcile.exit",
+					"action": "act.reconcile",
+					"check": "exitCode",
+					"value": 0
+				},
+				{
+					"id": "exp.reconcile.summary",
+					"action": "act.reconcile",
+					"check": "stdoutIncludes",
+					"value": "Reconciled"
+				},
+				{
+					"id": "exp.reconcile.written",
+					"action": "act.reconcile",
+					"check": "stdoutIncludes",
+					"value": "written to today.json"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.reconcile.business",
+					"audience": "business",
+					"text": "The stock ledger says what should be on the shelves, and a physical count says what is really there. The reconciliation tool compares the two files product by product and writes one report. Everything you see here is invented demo data.",
+					"claims": [
+						"claim.reconcile",
+						"claim.synthetic"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			]
+		},
+		{
+			"id": "scene.viewer",
+			"title": "Review the variances in the viewer",
+			"adapter": "browser",
+			"capabilities": [
+				"cap.entry.html-page-inventory-reconciliation",
+				"cap.entry.server-candidate-src-server.mjs"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.open",
+					"op": "goto",
+					"target": "/"
+				},
+				{
+					"id": "act.listed",
+					"op": "wait",
+					"target": "(counts.csv)"
+				},
+				{
+					"id": "act.select",
+					"op": "click",
+					"target": "button:(counts.csv)"
+				},
+				{
+					"id": "act.rows",
+					"op": "wait",
+					"target": "not counted"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.open.title",
+					"action": "act.open",
+					"check": "pageIncludes",
+					"value": "Inventory reconciliation"
+				},
+				{
+					"id": "exp.listed",
+					"action": "act.listed",
+					"check": "pageIncludes",
+					"value": "(counts.csv)"
+				},
+				{
+					"id": "exp.select.summary",
+					"action": "act.select",
+					"check": "pageIncludes",
+					"value": "SKUs"
+				},
+				{
+					"id": "exp.rows.short",
+					"action": "act.rows",
+					"check": "pageIncludes",
+					"value": "short"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.viewer.business",
+					"audience": "business",
+					"text": "The report opens in a simple viewer. Each product is marked as a match, short, over, not counted or unexpected, so the team can see which items need a recount before acting on the numbers.",
+					"claims": [
+						"claim.viewer",
+						"claim.statuses"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			]
+		},
+		{
+			"id": "scene.malformed",
+			"title": "Reject a malformed counts file",
+			"adapter": "process",
+			"capabilities": [
+				"cap.entry.bin-recon"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.malformed",
+					"op": "run",
+					"ref": "cmd.malformed"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.malformed.exit",
+					"action": "act.malformed",
+					"check": "exitCode",
+					"value": 2
+				},
+				{
+					"id": "exp.malformed.where",
+					"action": "act.malformed",
+					"check": "stderrIncludes",
+					"value": "counts-malformed.csv:"
+				},
+				{
+					"id": "exp.malformed.none",
+					"action": "act.malformed",
+					"check": "stderrIncludes",
+					"value": "no report written"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.malformed.business",
+					"audience": "business",
+					"text": "Now a count file with a mistake: one quantity was typed as words. The tool refuses it, names the file, line and column, and writes no report, so a bad count never reaches the viewer.",
+					"claims": [
+						"claim.reject"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			]
+		},
+		{
+			"id": "scene.reload",
+			"title": "The viewer is unchanged",
+			"adapter": "browser",
+			"capabilities": [
+				"cap.entry.html-page-inventory-reconciliation"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.reload",
+					"op": "goto",
+					"target": "/"
+				},
+				{
+					"id": "act.relisted",
+					"op": "wait",
+					"target": "(counts.csv)"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.relisted.only",
+					"action": "act.relisted",
+					"check": "pageExcludes",
+					"value": "counts-malformed.csv"
+				},
+				{
+					"id": "exp.relisted.valid",
+					"action": "act.relisted",
+					"check": "pageIncludes",
+					"value": "(counts.csv)"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.reload.business",
+					"audience": "business",
+					"text": "Back in the viewer, only the earlier valid report is listed. Discrepancies come from checked input only. This demo makes no claims about savings or speed; it shows the workflow on invented data.",
+					"claims": [
+						"claim.no-new-report",
+						"claim.synthetic"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			]
+		}
+	]
+}

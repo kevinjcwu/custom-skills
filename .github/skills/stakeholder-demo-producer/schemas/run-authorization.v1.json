@@ -1,0 +1,493 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "run-authorization.v1",
+	"title": "Run authorization",
+	"description": "Exact authority for one run of one storyboard. Only bindings hold absolute paths. It contains no credentials; an approvalRecord is informational and never enables a run on its own.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"storyboardSha256",
+		"subject",
+		"bindings",
+		"commands",
+		"network",
+		"http",
+		"limits",
+		"stopConditions"
+	],
+	"properties": {
+		"schema": {
+			"const": "run-authorization.v1"
+		},
+		"storyboardSha256": {
+			"$ref": "#/$defs/sha256"
+		},
+		"subject": {
+			"type": "string",
+			"enum": ["synthetic-fixture", "target"]
+		},
+		"bindings": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["targetRoot", "runDir", "executables"],
+			"properties": {
+				"targetRoot": {
+					"type": "string",
+					"maxLength": 4096,
+					"x-sdp-path": "approved-absolute"
+				},
+				"runDir": {
+					"type": "string",
+					"maxLength": 4096,
+					"x-sdp-path": "approved-absolute"
+				},
+				"executables": {
+					"type": "array",
+					"maxItems": 32,
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["id", "path"],
+						"properties": {
+							"id": {
+								"$ref": "#/$defs/id"
+							},
+							"path": {
+								"type": "string",
+								"maxLength": 4096,
+								"x-sdp-path": "approved-absolute"
+							}
+						}
+					}
+				}
+			}
+		},
+		"commands": {
+			"type": "array",
+			"maxItems": 256,
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"executable",
+					"argv",
+					"cwd",
+					"env",
+					"envPassthrough"
+				],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"executable": {
+						"$ref": "#/$defs/id"
+					},
+					"argv": {
+						"type": "array",
+						"maxItems": 256,
+						"items": {
+							"type": "string",
+							"maxLength": 4096
+						}
+					},
+					"cwd": {
+						"type": "string",
+						"maxLength": 4096,
+						"x-sdp-path": "relative-dir"
+					},
+					"env": {
+						"type": "array",
+						"maxItems": 64,
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["name", "value"],
+							"properties": {
+								"name": {
+									"type": "string",
+									"pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+								},
+								"value": {
+									"type": "string",
+									"maxLength": 4096
+								}
+							}
+						}
+					},
+					"envPassthrough": {
+						"type": "array",
+						"maxItems": 64,
+						"uniqueItems": true,
+						"items": {
+							"type": "string",
+							"pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+						}
+					}
+				}
+			}
+		},
+		"workspace": {
+			"type": "object",
+			"description": "A writable directory created for each run at <run>/workspace. Command and service argv may refer to it only as the token {workspace} or {workspace}/<relative path>; target outputs therefore never modify targetRoot.",
+			"additionalProperties": false,
+			"required": ["dirs"],
+			"properties": {
+				"dirs": {
+					"type": "array",
+					"maxItems": 32,
+					"uniqueItems": true,
+					"items": {
+						"type": "string",
+						"maxLength": 1024,
+						"x-sdp-path": "relative-dir"
+					}
+				}
+			}
+		},
+		"browser": {
+			"type": "object",
+			"description": "Approved browser capture: one target service started from an approved executable, which must print a JSON readiness line with a loopback origin. The browser may load only that origin.",
+			"additionalProperties": false,
+			"required": ["service", "settleMs"],
+			"properties": {
+				"service": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["id", "executable", "argv", "cwd", "env", "envPassthrough", "readyTimeoutMs"],
+					"properties": {
+						"id": {
+							"$ref": "#/$defs/id"
+						},
+						"executable": {
+							"$ref": "#/$defs/id"
+						},
+						"argv": {
+							"type": "array",
+							"maxItems": 256,
+							"items": {
+								"type": "string",
+								"maxLength": 4096
+							}
+						},
+						"cwd": {
+							"type": "string",
+							"maxLength": 4096,
+							"x-sdp-path": "relative-dir"
+						},
+						"env": {
+							"type": "array",
+							"maxItems": 64,
+							"items": {
+								"type": "object",
+								"additionalProperties": false,
+								"required": ["name", "value"],
+								"properties": {
+									"name": {
+										"type": "string",
+										"pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+									},
+									"value": {
+										"type": "string",
+										"maxLength": 4096
+									}
+								}
+							}
+						},
+						"envPassthrough": {
+							"type": "array",
+							"maxItems": 64,
+							"uniqueItems": true,
+							"items": {
+								"type": "string",
+								"pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+							}
+						},
+						"readyTimeoutMs": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 120000
+						}
+					}
+				},
+				"settleMs": {
+					"type": "integer",
+					"description": "Pause after each browser action so the recording shows its result.",
+					"minimum": 0,
+					"maximum": 10000
+				}
+			}
+		},
+		"interactions": {
+			"type": "array",
+			"description": "Run-local helper programs the storyboard's helper actions may start. A helper is written by the agent for this target after discovery and approved with the plan; the skill ships none. Each runs from an approved executable with an explicit environment (literals plus named pass-through variables, never the whole parent environment), a contained cwd, the action time limit, capped output and process-group teardown. It talks to the run over JSON lines: it may ask the run to evaluate one of its declared, hash-approved page scripts in the recorded page (only with needs browser-page) and reports a result plus media files written under SDP_OUT_DIR. SDP_OUT_DIR is the only declared write location, not a sandbox: helpers are trusted, approved programs with the user's filesystem and network access. A helper's reported status is a claim; the run passes the action only when the helper reported done, exited 0, every reported media file is valid and every storyboard expectation (at least one pageIncludesNew) holds.",
+			"maxItems": 32,
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["id", "purpose", "executable", "argv", "cwd", "env", "envPassthrough", "needs", "pageScripts", "media"],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"purpose": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 500
+					},
+					"executable": {
+						"$ref": "#/$defs/id"
+					},
+					"argv": {
+						"type": "array",
+						"maxItems": 256,
+						"items": {
+							"type": "string",
+							"maxLength": 4096
+						}
+					},
+					"cwd": {
+						"type": "string",
+						"maxLength": 4096,
+						"x-sdp-path": "relative-dir"
+					},
+					"env": {
+						"type": "array",
+						"maxItems": 64,
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["name", "value"],
+							"properties": {
+								"name": {
+									"type": "string",
+									"pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+								},
+								"value": {
+									"type": "string",
+									"maxLength": 4096
+								}
+							}
+						}
+					},
+					"envPassthrough": {
+						"type": "array",
+						"maxItems": 64,
+						"uniqueItems": true,
+						"items": {
+							"type": "string",
+							"pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+						}
+					},
+					"needs": {
+						"type": "array",
+						"description": "browser-page: the helper may ask the run to evaluate its declared page scripts in this run's recorded page. Nothing else is granted.",
+						"maxItems": 1,
+						"uniqueItems": true,
+						"items": {
+							"type": "string",
+							"enum": ["browser-page"]
+						}
+					},
+					"pageScripts": {
+						"type": "array",
+						"maxItems": 16,
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["id", "file"],
+							"properties": {
+								"id": {
+									"$ref": "#/$defs/id"
+								},
+								"file": {
+									"type": "string",
+									"description": "Approved helper file (relative to the run workspace, under helpers/) holding one JavaScript function expression; the run evaluates it in the page with one JSON argument.",
+									"maxLength": 1024,
+									"x-sdp-path": "relative"
+								}
+							}
+						}
+					},
+					"media": {
+						"type": "array",
+						"description": "Media roles the helper may report. provenance comes from here, never from the helper: generated (the helper made it, for example a synthetic user's voice; never the app's output) or helper-captured (the helper says it recorded it from the app; the run did not verify the source).",
+						"maxItems": 8,
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["role", "label", "provenance"],
+							"properties": {
+								"role": {
+									"$ref": "#/$defs/id"
+								},
+								"label": {
+									"type": "string",
+									"minLength": 1,
+									"maxLength": 80
+								},
+								"provenance": {
+									"type": "string",
+									"enum": ["generated", "helper-captured"]
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"network": {
+			"type": "string",
+			"enum": ["none", "loopback", "allowlisted-origins"]
+		},
+		"http": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["requests"],
+			"properties": {
+				"requests": {
+					"type": "array",
+					"maxItems": 256,
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": ["id", "origin", "method", "path", "headers"],
+						"properties": {
+							"id": {
+								"$ref": "#/$defs/id"
+							},
+							"origin": {
+								"type": "string",
+								"minLength": 1,
+								"maxLength": 2048
+							},
+							"method": {
+								"type": "string",
+								"enum": ["GET", "HEAD", "POST"]
+							},
+							"path": {
+								"type": "string",
+								"pattern": "^/",
+								"maxLength": 4096
+							},
+							"headers": {
+								"type": "array",
+								"maxItems": 32,
+								"items": {
+									"type": "object",
+									"additionalProperties": false,
+									"required": ["name", "value"],
+									"properties": {
+										"name": {
+											"type": "string",
+											"pattern": "^[A-Za-z0-9-]{1,64}$"
+										},
+										"value": {
+											"type": "string",
+											"description": "Printable ASCII, space and tab only; control characters such as CR and LF are refused.",
+											"pattern": "^[\\t\\x20-\\x7e]*$",
+											"maxLength": 4096
+										}
+									}
+								}
+							},
+							"body": {
+								"type": "string",
+								"maxLength": 1048576
+							}
+						}
+					}
+				}
+			}
+		},
+		"limits": {
+			"type": "object",
+			"description": "All limits are explicit; there are no defaults.",
+			"additionalProperties": false,
+			"required": [
+				"timeoutMs",
+				"maxOutputBytes",
+				"maxResponseBytes",
+				"maxRequestBytes",
+				"killGraceMs",
+				"retries"
+			],
+			"properties": {
+				"timeoutMs": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 3600000
+				},
+				"maxOutputBytes": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 1073741824
+				},
+				"maxResponseBytes": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 1073741824
+				},
+				"maxRequestBytes": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 1048576
+				},
+				"killGraceMs": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 60000
+				},
+				"retries": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 3
+				}
+			}
+		},
+		"stopConditions": {
+			"type": "array",
+			"minItems": 3,
+			"uniqueItems": true,
+			"items": {
+				"type": "string",
+				"enum": ["first-failure", "cancellation", "limit-exceeded"]
+			}
+		},
+		"approvalRecord": {
+			"type": "object",
+			"description": "Informational only. It is not authentication and never enables a run.",
+			"additionalProperties": false,
+			"required": ["approvedBy", "approvedAt"],
+			"properties": {
+				"approvedBy": {
+					"$ref": "#/$defs/text"
+				},
+				"approvedAt": {
+					"type": "string",
+					"minLength": 1,
+					"maxLength": 64
+				},
+				"note": {
+					"$ref": "#/$defs/text"
+				}
+			}
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 4000
+		}
+	}
+}

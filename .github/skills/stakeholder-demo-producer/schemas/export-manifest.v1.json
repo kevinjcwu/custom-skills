@@ -1,0 +1,378 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "export-manifest.v1",
+	"title": "Export manifest",
+	"description": "Edit list, inputs, outputs and structural export checks of one narrated audience export produced from a completed, hash-verified run. structural-pass is not release: release needs an independent full-file audiovisual review.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"runId",
+		"audience",
+		"inputs",
+		"profile",
+		"totalFrames",
+		"durationMs",
+		"segments",
+		"narration",
+		"files",
+		"checks",
+		"verdict",
+		"limitations"
+	],
+	"properties": {
+		"schema": {
+			"const": "export-manifest.v1"
+		},
+		"runId": {
+			"$ref": "#/$defs/runId"
+		},
+		"audience": {
+			"type": "string",
+			"enum": [
+				"business",
+				"engineering"
+			]
+		},
+		"inputs": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"runManifestSha256",
+				"qaReportSha256",
+				"claimLedgerSha256",
+				"calibrationSha256"
+			],
+			"properties": {
+				"runManifestSha256": {
+					"$ref": "#/$defs/sha256"
+				},
+				"qaReportSha256": {
+					"$ref": "#/$defs/sha256"
+				},
+				"claimLedgerSha256": {
+					"$ref": "#/$defs/sha256"
+				},
+				"calibrationSha256": {
+					"$ref": "#/$defs/sha256"
+				}
+			}
+		},
+		"profile": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"video",
+				"audio",
+				"container"
+			],
+			"properties": {
+				"video": {
+					"const": "h264 High yuv420p 1280x720 30fps crf20 medium"
+				},
+				"audio": {
+					"type": "string",
+					"enum": [
+						"aac LC 48000Hz stereo 160k narrator -16LUFS",
+						"aac LC 48000Hz stereo 160k narrator -16LUFS + run-local helper media -16LUFS"
+					]
+				},
+				"container": {
+					"const": "mp4 +faststart"
+				}
+			}
+		},
+		"totalFrames": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"durationMs": {
+			"type": "number",
+			"minimum": 0
+		},
+		"segments": {
+			"type": "array",
+			"minItems": 1,
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"kind",
+					"startFrame",
+					"frames",
+					"label"
+				],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"kind": {
+						"type": "string",
+						"enum": [
+							"title-card",
+							"diagram-card",
+							"recorded-output-panel",
+							"browser-clip",
+							"closing-card",
+							"narrated-still",
+							"interaction-clip"
+						]
+					},
+					"sceneId": {
+						"$ref": "#/$defs/id"
+					},
+					"startFrame": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"frames": {
+						"type": "integer",
+						"minimum": 1
+					},
+					"label": {
+						"$ref": "#/$defs/text"
+					},
+					"source": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": [
+							"artifact",
+							"sha256"
+						],
+						"properties": {
+							"artifact": {
+								"$ref": "#/$defs/relativePath"
+							},
+							"sha256": {
+								"$ref": "#/$defs/sha256"
+							},
+							"inMs": {
+								"type": "number",
+								"minimum": 0
+							},
+							"outMs": {
+								"type": "number",
+								"minimum": 0
+							},
+							"heldFrames": {
+								"type": "integer",
+								"minimum": 0
+							}
+						}
+					}
+				}
+			}
+		},
+		"narration": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"sceneId",
+					"narrationId",
+					"claims",
+					"startMs",
+					"endMs",
+					"audio"
+				],
+				"properties": {
+					"sceneId": {
+						"$ref": "#/$defs/id"
+					},
+					"narrationId": {
+						"$ref": "#/$defs/id"
+					},
+					"claims": {
+						"type": "array",
+						"items": {
+							"$ref": "#/$defs/id"
+						}
+					},
+					"startMs": {
+						"type": "number",
+						"minimum": 0
+					},
+					"endMs": {
+						"type": "number",
+						"minimum": 0
+					},
+					"audio": {
+						"$ref": "#/$defs/relativePath"
+					}
+				}
+			}
+		},
+		"interactionClips": {
+			"type": "array",
+			"description": "Browser clips that carry media reported by run-local helpers, after a narrated still; narration never overlaps them. Media are placed at the times the helper reported (timingSource helper-reported): that is not a measured picture/sound alignment. generated media were made by the helper (never the app's output); helper-captured media are the helper's recording, whose source the run did not verify.",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": ["sceneId", "startMs", "endMs", "inMs", "outMs", "media"],
+				"properties": {
+					"sceneId": {
+						"$ref": "#/$defs/id"
+					},
+					"startMs": {
+						"type": "number",
+						"minimum": 0
+					},
+					"endMs": {
+						"type": "number",
+						"minimum": 0
+					},
+					"inMs": {
+						"type": "number",
+						"minimum": 0
+					},
+					"outMs": {
+						"type": "number",
+						"minimum": 0
+					},
+					"media": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["actionId", "role", "label", "provenance", "timingSource", "artifact", "sha256", "startMs", "endMs"],
+							"properties": {
+								"actionId": {
+									"$ref": "#/$defs/id"
+								},
+								"role": {
+									"$ref": "#/$defs/id"
+								},
+								"label": {
+									"$ref": "#/$defs/text"
+								},
+								"provenance": {
+									"type": "string",
+									"enum": ["generated", "helper-captured"]
+								},
+								"timingSource": {
+									"const": "helper-reported"
+								},
+								"artifact": {
+									"$ref": "#/$defs/relativePath"
+								},
+								"sha256": {
+									"$ref": "#/$defs/sha256"
+								},
+								"startMs": {
+									"type": "number",
+									"minimum": 0
+								},
+								"endMs": {
+									"type": "number",
+									"minimum": 0
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"files": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"path",
+					"sha256",
+					"bytes",
+					"role"
+				],
+				"properties": {
+					"path": {
+						"$ref": "#/$defs/relativePath"
+					},
+					"sha256": {
+						"$ref": "#/$defs/sha256"
+					},
+					"bytes": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"role": {
+						"type": "string",
+						"enum": [
+							"export-video",
+							"captions",
+							"narration-audio",
+							"card-image",
+							"review-frame"
+						]
+					}
+				}
+			}
+		},
+		"checks": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"status",
+					"detail"
+				],
+				"properties": {
+					"id": {
+						"$ref": "#/$defs/id"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"pass",
+							"fail"
+						]
+					},
+					"detail": {
+						"$ref": "#/$defs/text"
+					}
+				}
+			}
+		},
+		"verdict": {
+			"type": "string",
+			"enum": [
+				"structural-pass",
+				"fail"
+			]
+		},
+		"limitations": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/text"
+			}
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"sha256": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 4000
+		},
+		"relativePath": {
+			"type": "string",
+			"maxLength": 4096,
+			"x-sdp-path": "relative"
+		},
+		"runId": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+		}
+	}
+}

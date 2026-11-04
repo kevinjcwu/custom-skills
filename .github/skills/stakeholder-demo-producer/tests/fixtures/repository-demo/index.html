@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+	<meta charset="utf-8" />
+	<title>Synthetic file import demo</title>
+	<label for="upload">Choose a text file</label>
+	<input id="upload" type="file" accept=".txt,text/plain" />
+	<output id="result" aria-live="polite">No file selected.</output>
+	<script>
+		const output = document.querySelector("#result");
+		window.fixtureCapture = new Blob(["synthetic initial fixture capture"], {
+			type: "text/plain",
+		});
+		document
+			.querySelector("#upload")
+			.addEventListener("change", async (event) => {
+				const file = event.currentTarget.files?.[0];
+				if (!file) return;
+				const text = await file.text();
+				output.textContent = `Imported ${file.name}: ${text}`;
+				window.fixtureCapture = new Blob([output.textContent], {
+					type: "text/plain",
+				});
+			});
+	</script>
+</html>

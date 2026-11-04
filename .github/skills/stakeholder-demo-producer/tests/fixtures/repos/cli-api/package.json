@@ -1,0 +1,12 @@
+{
+	"name": "task-tally",
+	"private": true,
+	"type": "module",
+	"bin": {
+		"tally": "bin/tally.mjs"
+	},
+	"scripts": {
+		"start": "node scripts/mark-executed.mjs",
+		"test": "node scripts/mark-executed.mjs"
+	}
+}

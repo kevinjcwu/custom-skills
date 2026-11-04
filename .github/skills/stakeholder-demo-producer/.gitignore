@@ -1,0 +1,4 @@
+# Project-local tool installs, run outputs and test scratch folders; never committed.
+.runtime/
+.runs/
+.test-runs/

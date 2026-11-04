@@ -1,0 +1,373 @@
+{
+	"schema": "storyboard.v1",
+	"catalogSha256": "0f651313fcf3a7367543eea2ee091e249ffb198cbfe143e8d6db18620badb4f6",
+	"title": "Inventory reconciliation: pipeline, exit-code contract and error path",
+	"goal": "Show the command path from CSV input to the read-only viewer, and the exit-code contract on invalid input",
+	"audiences": [
+		"engineering"
+	],
+	"confidentiality": {
+		"onScreen": "synthetic-only",
+		"exportAudience": "internal evaluation of the stakeholder-demo-producer skill"
+	},
+	"clarifications": [
+		{
+			"id": "clar.audience",
+			"question": "Who is the audience and what decision should the demo support?",
+			"answer": "Engineers reviewing the pipeline, exit codes and error path (released plan storyboard D)",
+			"source": "default-assumption"
+		},
+		{
+			"id": "clar.confidentiality",
+			"question": "May repository content appear on screen?",
+			"answer": "Only the bundled synthetic fixture and its invented data appear",
+			"source": "default-assumption"
+		}
+	],
+	"dataProvenance": [
+		{
+			"id": "data.synthetic",
+			"kind": "synthetic",
+			"description": "Invented ledger and count CSV files bundled with the inventory-recon fixture",
+			"rightsConfirmed": true
+		}
+	],
+	"claims": [
+		{
+			"id": "claim.reconcile",
+			"text": "The recon command reconciles the synthetic ledger against the synthetic counts and writes a report",
+			"class": "observed",
+			"evidence": [
+				"ev.bin-recon.mjs"
+			],
+			"demonstratedBy": [
+				"act.reconcile"
+			],
+			"capability": "cap.entry.bin-recon"
+		},
+		{
+			"id": "claim.viewer",
+			"text": "The viewer lists the report and shows each SKU's variance status",
+			"class": "observed",
+			"evidence": [
+				"ev.public-index.html"
+			],
+			"demonstratedBy": [
+				"act.open",
+				"act.select"
+			],
+			"capability": "cap.entry.html-page-inventory-reconciliation"
+		},
+		{
+			"id": "claim.reject",
+			"text": "Malformed counts are rejected with a file, line and column diagnostic and no report is written",
+			"class": "observed",
+			"evidence": [
+				"ev.recon-pipeline"
+			],
+			"demonstratedBy": [
+				"act.malformed"
+			],
+			"capability": "cap.entry.bin-recon"
+		},
+		{
+			"id": "claim.no-new-report",
+			"text": "After the rejected input the viewer still lists only the earlier report",
+			"class": "observed",
+			"evidence": [],
+			"demonstratedBy": [
+				"act.relisted"
+			],
+			"capability": "cap.entry.html-page-inventory-reconciliation"
+		},
+		{
+			"id": "claim.pipeline",
+			"text": "The command parses both files with the CSV parser, compares them per SKU in the reconciler and writes a JSON report",
+			"class": "source-backed",
+			"evidence": [
+				"ev.recon-pipeline",
+				"ev.csv-diagnostics",
+				"ev.reconcile-core"
+			],
+			"demonstratedBy": []
+		},
+		{
+			"id": "claim.no-overwrite",
+			"text": "The report is written with an exclusive create, so an existing report is never overwritten",
+			"class": "source-backed",
+			"evidence": [
+				"ev.recon-pipeline"
+			],
+			"demonstratedBy": []
+		},
+		{
+			"id": "claim.api",
+			"text": "A read-only loopback server lists reports at /api/reports and the page fetches them from it",
+			"class": "source-backed",
+			"evidence": [
+				"ev.server-routes",
+				"ev.viewer-fetch"
+			],
+			"demonstratedBy": []
+		},
+		{
+			"id": "claim.exit-codes",
+			"text": "Exit code 0 means a report was written, 2 invalid input, 1 an internal error",
+			"class": "documented",
+			"evidence": [
+				"ev.readme-exit-codes"
+			],
+			"demonstratedBy": []
+		}
+	],
+	"scenes": [
+		{
+			"id": "scene.reconcile",
+			"title": "Reconcile the counts against the ledger",
+			"adapter": "process",
+			"capabilities": [
+				"cap.entry.bin-recon"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.reconcile",
+					"op": "run",
+					"ref": "cmd.reconcile"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.reconcile.exit",
+					"action": "act.reconcile",
+					"check": "exitCode",
+					"value": 0
+				},
+				{
+					"id": "exp.reconcile.summary",
+					"action": "act.reconcile",
+					"check": "stdoutIncludes",
+					"value": "Reconciled"
+				},
+				{
+					"id": "exp.reconcile.written",
+					"action": "act.reconcile",
+					"check": "stdoutIncludes",
+					"value": "written to today.json"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.reconcile.engineering",
+					"audience": "engineering",
+					"text": "The recon command reads the ledger and the counts through the CSV parser, which reports a line and column for any malformed field. The reconciler compares expected and counted quantities per SKU. The report is written with an exclusive create, so an existing report is never overwritten.",
+					"claims": [
+						"claim.pipeline",
+						"claim.no-overwrite",
+						"claim.reconcile"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			],
+			"diagram": {
+				"edges": [
+					"edge.cli-csv",
+					"edge.csv-reconciler",
+					"edge.reconciler-report"
+				],
+				"caption": "Command path: recon command, CSV parser, reconciler, JSON report"
+			}
+		},
+		{
+			"id": "scene.viewer",
+			"title": "Review the variances in the viewer",
+			"adapter": "browser",
+			"capabilities": [
+				"cap.entry.html-page-inventory-reconciliation",
+				"cap.entry.server-candidate-src-server.mjs"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.open",
+					"op": "goto",
+					"target": "/"
+				},
+				{
+					"id": "act.listed",
+					"op": "wait",
+					"target": "(counts.csv)"
+				},
+				{
+					"id": "act.select",
+					"op": "click",
+					"target": "button:(counts.csv)"
+				},
+				{
+					"id": "act.rows",
+					"op": "wait",
+					"target": "not counted"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.open.title",
+					"action": "act.open",
+					"check": "pageIncludes",
+					"value": "Inventory reconciliation"
+				},
+				{
+					"id": "exp.listed",
+					"action": "act.listed",
+					"check": "pageIncludes",
+					"value": "(counts.csv)"
+				},
+				{
+					"id": "exp.select.summary",
+					"action": "act.select",
+					"check": "pageIncludes",
+					"value": "SKUs"
+				},
+				{
+					"id": "exp.rows.short",
+					"action": "act.rows",
+					"check": "pageIncludes",
+					"value": "short"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.viewer.engineering",
+					"audience": "engineering",
+					"text": "A read-only server on the loopback interface lists the report files through the reports API. The viewer page fetches that list, and selecting the report loads its variance rows.",
+					"claims": [
+						"claim.api",
+						"claim.viewer"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			],
+			"diagram": {
+				"edges": [
+					"edge.report-api",
+					"edge.api-viewer"
+				],
+				"caption": "Viewing path: report file, read-only API, viewer page"
+			}
+		},
+		{
+			"id": "scene.malformed",
+			"title": "Reject a malformed counts file",
+			"adapter": "process",
+			"capabilities": [
+				"cap.entry.bin-recon"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.malformed",
+					"op": "run",
+					"ref": "cmd.malformed"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.malformed.exit",
+					"action": "act.malformed",
+					"check": "exitCode",
+					"value": 2
+				},
+				{
+					"id": "exp.malformed.where",
+					"action": "act.malformed",
+					"check": "stderrIncludes",
+					"value": "counts-malformed.csv:"
+				},
+				{
+					"id": "exp.malformed.none",
+					"action": "act.malformed",
+					"check": "stderrIncludes",
+					"value": "no report written"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.malformed.engineering",
+					"audience": "engineering",
+					"text": "The exit code contract is documented: zero for a written report, two for invalid input, one for an internal error. Given counts with a quantity in words, the command exits with code two, prints file, line and column on standard error, and writes nothing.",
+					"claims": [
+						"claim.exit-codes",
+						"claim.reject"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			]
+		},
+		{
+			"id": "scene.reload",
+			"title": "The viewer is unchanged",
+			"adapter": "browser",
+			"capabilities": [
+				"cap.entry.html-page-inventory-reconciliation"
+			],
+			"dataProvenance": [
+				"data.synthetic"
+			],
+			"actions": [
+				{
+					"id": "act.reload",
+					"op": "goto",
+					"target": "/"
+				},
+				{
+					"id": "act.relisted",
+					"op": "wait",
+					"target": "(counts.csv)"
+				}
+			],
+			"expect": [
+				{
+					"id": "exp.relisted.only",
+					"action": "act.relisted",
+					"check": "pageExcludes",
+					"value": "counts-malformed.csv"
+				},
+				{
+					"id": "exp.relisted.valid",
+					"action": "act.relisted",
+					"check": "pageIncludes",
+					"value": "(counts.csv)"
+				}
+			],
+			"narration": [
+				{
+					"id": "nar.reload.engineering",
+					"audience": "engineering",
+					"text": "Reloading the viewer confirms the error path left nothing behind: the list still holds only the report from the valid run.",
+					"claims": [
+						"claim.no-new-report"
+					],
+					"caption": {
+						"source": "narration-text",
+						"provenance": "agent-drafted"
+					}
+				}
+			]
+		}
+	]
+}

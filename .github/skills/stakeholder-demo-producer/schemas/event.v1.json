@@ -1,0 +1,121 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "event.v1",
+	"title": "Run event",
+	"description": "One line of events.jsonl. seq is consecutive from 0 and tMs is milliseconds on the Node monotonic clock since run start.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"schema",
+		"runId",
+		"seq",
+		"clock",
+		"tMs",
+		"producer",
+		"kind",
+		"type",
+		"data",
+		"disposition"
+	],
+	"properties": {
+		"schema": {
+			"const": "event.v1"
+		},
+		"runId": {
+			"$ref": "#/$defs/runId"
+		},
+		"seq": {
+			"type": "integer",
+			"minimum": 0
+		},
+		"clock": {
+			"const": "node-monotonic"
+		},
+		"tMs": {
+			"type": "number",
+			"minimum": 0
+		},
+		"producer": {
+			"type": "string",
+			"enum": ["run", "process-adapter", "http-adapter", "browser-adapter", "helper-adapter", "evidence"]
+		},
+		"kind": {
+			"type": "string",
+			"enum": ["observed", "inferred"]
+		},
+		"type": {
+			"type": "string",
+			"enum": [
+				"run.start",
+				"run.end",
+				"evidence.verified",
+				"scene.start",
+				"scene.end",
+				"action.start",
+				"action.attempt",
+				"action.end",
+				"action.skipped",
+				"expect.result",
+				"cleanup"
+			]
+		},
+		"data": {
+			"type": "object",
+			"description": "Flat map of scalar values.",
+			"additionalProperties": {
+				"type": ["string", "integer", "number", "boolean", "null"],
+				"maxLength": 2000
+			}
+		},
+		"disposition": {
+			"type": "string",
+			"enum": ["ok", "failed", "cancelled", "blocked", "timeout", "skipped"]
+		},
+		"sceneId": {
+			"$ref": "#/$defs/id"
+		},
+		"actionId": {
+			"$ref": "#/$defs/id"
+		},
+		"attempt": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"evidenceRef": {
+			"$ref": "#/$defs/relativePath"
+		},
+		"error": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["code", "message"],
+			"properties": {
+				"code": {
+					"$ref": "#/$defs/id"
+				},
+				"message": {
+					"$ref": "#/$defs/text"
+				}
+			}
+		}
+	},
+	"$defs": {
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"
+		},
+		"text": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 4000
+		},
+		"relativePath": {
+			"type": "string",
+			"maxLength": 4096,
+			"x-sdp-path": "relative"
+		},
+		"runId": {
+			"type": "string",
+			"pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+		}
+	}
+}
