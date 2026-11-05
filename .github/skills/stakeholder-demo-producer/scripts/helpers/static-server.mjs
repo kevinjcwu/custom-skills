@@ -59,6 +59,11 @@ function resolveFile(urlPath) {
 }
 
 const server = http.createServer((request, response) => {
+	// Loopback binding alone does not prevent DNS rebinding.
+	if (request.headers.host !== `127.0.0.1:${request.socket.localPort}`) {
+		response.writeHead(421, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" }).end("unexpected host");
+		return;
+	}
 	if (request.method !== "GET" && request.method !== "HEAD") {
 		response.writeHead(405, { allow: "GET, HEAD" }).end();
 		return;

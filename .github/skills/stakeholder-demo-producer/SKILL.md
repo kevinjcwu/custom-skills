@@ -224,3 +224,10 @@ Stop and ask the human when:
   failure needs a new permission, material story change, spending/retake or application change.
   Preserve the failed result; ordinary authorized local repairs, tests and resealing need no new
   human hash approval. Never rerun a paid/live interaction by implication.
+
+## License
+
+Repository-authored skill code and documentation use the [MIT License](LICENSE). Downloaded tools
+and voices retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md). Keep both files
+when copying this skill. Do not distribute local runtimes, recordings or private application data
+as though the skill's license covered them.
