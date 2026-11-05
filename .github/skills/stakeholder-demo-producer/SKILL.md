@@ -1,6 +1,13 @@
 ---
 name: stakeholder-demo-producer
-description: Turns an authorized code repository into an honest narrated product demo. Use it when someone requests a product walkthrough or stakeholder video: inspect real user journeys, identify missing interactions, develop only bounded approved per-demo helpers, and obtain exact recording approval. Use the existing sdp workflow where its contracts fit; otherwise an agent may orchestrate a run-local driver from the proven browser/helper/media utilities. Produce a narrated MP4, readable captions, originals and provenance/coverage notes. Never invent product output or release automatically; a person must watch and listen to the exact file.
+description: >-
+  Turns an authorized code repository into an honest narrated product demo. Use it when someone requests
+  a product walkthrough or stakeholder video: inspect real user journeys, identify missing interactions,
+  develop only bounded approved per-demo helpers, and obtain exact recording approval. Use the existing
+  sdp workflow where its contracts fit; otherwise an agent may orchestrate a run-local driver from the
+  proven browser/helper/media utilities. Produce a narrated MP4, readable captions, originals and
+  provenance/coverage notes. Never invent product output or release automatically; a person must watch
+  and listen to the exact file.
 compatibility: Node.js 24 (verified on 24.22.0). Core commands use Node built-ins only. Browser capture, offline speech synthesis and export use a pinned project-local toolchain installed by setup, verified on linux x64 Ubuntu 22.04 only.
 ---
 
@@ -42,8 +49,12 @@ labelled by the plan, and is never presented as the app's own output unless the 
 - **Local state (never distributed):** `.runtime/` (the installed toolchain) and `.runs/` (past runs) are
   ignored by version control. Share or copy the skill from version control, without them.
 
-The skill ships no app-specific integrations: no simulated user, no voice caller, no audio routing and no
-network isolation. If discovery shows the app needs an interaction the adapters cannot perform (for
+The skill ships no app-specific integrations or complete voice caller. Optional browser-page
+[voice primitives](references/voice-integration.md) supply generated audio-only input and continuous
+sink-audio capture, not repository selectors, conversation attribution or network isolation.
+Reusable timestamped frames, stop-before-transfer finalization and bounded original-byte transfer
+are available in `scripts/lib/recording.mjs`; use them instead of inventing capture shutdown per demo.
+If discovery shows the app needs an interaction the adapters cannot perform (for
 example a user speaking to the app, a file upload driven from outside the page, a device the browser
 does not have), investigate the app, then write, test and declare the missing piece as a run-local
 helper ([references/run-local-helpers.md](references/run-local-helpers.md)). The packaged scripts never
@@ -72,15 +83,28 @@ Do not add behavior to those commands by implication. If an essential interactio
 finalization policy cannot be expressed by that workflow, the agent may develop a bounded driver in the
 separate per-demo workspace and compose the existing browser, helper, process, narration and export
 utilities. Follow [references/repository-workflow.md](references/repository-workflow.md) for its
-separate development permission, exact recording approval, hard deadline, originals, honest partial
+declared development permission, single showcase/execution approval, hard deadline, originals, honest partial
 exports and evidence. A generated driver is trusted code, not a sandbox, and is never shipped as a
 generic app integration.
+
+The desired interaction is: point at the repository, receive a concise proposed showcase, discuss any
+requirements or scene changes, approve the agreed execution scope once, then receive the video and
+honest limitations. The agent owns discovery, integration work and routine technical correction; the
+human reviews the story and permissions, not selectors or internal tests. Review has no fixed iteration
+budget. Execution still has explicit time, network, cost/attempt and cleanup boundaries. An unknown
+integration or new privilege is a real stop, not permission to improvise access.
 
 ## Main workflow
 
 Work through these steps in order. Do not skip the approval, and do not present a blocked step as done.
 The numbered `sdp` commands below describe the existing CLI route; the agent-orchestrated driver route
 has distinct approval and evidence rules in the reference above.
+
+For a repository requiring a new interaction integration, use the agent-orchestrated sequence:
+discover → propose/discuss showcase and integration scope → approve development and execution once →
+implement/check repo-local helpers → seal exact inputs → record/export/check → deliver. Do not force
+the human through an additional preparation approval when that development was already authorized.
+The CLI sequence below applies when its existing contracts and prepared adapters fit the journey.
 
 1. **Discover** (available now). Run `discover --root <repo> --out catalog.json`, then read the evidence
    and extend the catalog with what a user can see and do: capabilities with `userVisible: true`, their
@@ -196,4 +220,7 @@ Stop and ask the human when:
 - a scene needs data that is not synthetic or whose rights are not confirmed;
 - the cost estimate is unusually high for a demo, or you cannot estimate it;
 - `plan` reports the plan invalid in a way that changes what the human approved;
-- `demo` exits 1 or 3, or reports anything other than `ready-for-human-review`.
+- `demo` exits 1 or 3, or reports anything other than `ready-for-human-review`, and resolving the
+  failure needs a new permission, material story change, spending/retake or application change.
+  Preserve the failed result; ordinary authorized local repairs, tests and resealing need no new
+  human hash approval. Never rerun a paid/live interaction by implication.

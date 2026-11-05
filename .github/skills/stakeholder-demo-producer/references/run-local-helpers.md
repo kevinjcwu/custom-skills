@@ -8,14 +8,18 @@ limits and cleanup as everything else.
 
 That describes the existing `sdp` route. When its contracts cannot express the essential journey or capture
 policy, use the separate agent-orchestrated route in
-[repository-workflow.md](repository-workflow.md): helper-development permission comes before writing or
-testing generated code, and a distinct exact recording approval is required before production. A
+[repository-workflow.md](repository-workflow.md): helper-development authority comes before writing or
+testing generated code; the agreed showcase approval may cover both development and production, so no
+second acknowledgement is needed for routine implementation within that scope. A development-only
+grant never permits recording. A
 run-local driver composes shared utilities; it does not change `sdp` helper semantics or make helpers a
 sandbox.
 
 Examples of gaps a helper may fill: a simulated user speaking to an app that listens to its microphone, a
 synthetic sensor or message feed the page waits for, a drag-and-drop the fixed page steps cannot express.
-These are examples of needs to look for, not tools that exist: there is no prebuilt helper for any of them.
+These are examples of needs to look for, not complete integrations. Generic browser voice primitives are
+available in [voice-integration.md](voice-integration.md); selectors, protocols, voice scenarios and
+attribution still belong in the adapter generated for the target repository.
 
 ## Two kinds of helper files
 

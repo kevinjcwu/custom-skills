@@ -102,6 +102,9 @@ const SIGNALS = [
 	{ signal: "microphone", regex: /\bgetUserMedia\b/, platform: "audio" },
 	{ signal: "web-audio", regex: /\bAudioContext\b/, platform: "audio" },
 	{ signal: "speech-synthesis", regex: /\bspeechSynthesis\b/, platform: "audio" },
+	{ signal: "voice-interruption", regex: /\b(interrupt_response|barge[-_ ]?in|response\.cancel|transcript-interrupted)\b/i, platform: "audio" },
+	{ signal: "voice-transcription", regex: /\b(transcri(?:pt|ption)|speech[-_ ]?to[-_ ]?text|input_audio_transcription)\w*/i, platform: "audio" },
+	{ signal: "voice-turn-detection", regex: /\b(turn_detection|speech_started|speech_stopped|server_vad|semantic_vad)\b/, platform: "audio" },
 ];
 
 const PLATFORM_NAMES = {

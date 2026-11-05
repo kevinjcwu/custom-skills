@@ -8,6 +8,25 @@ import { copyDir, FIXTURE_REPOS, makeTempDir, runSdp } from "./helpers.mjs";
 
 const SECRET = "sentinel-secret-value-do-not-read";
 
+test("voice discovery flags literal investigation leads, not working features", (t) => {
+	const { dir, cleanup } = makeTempDir();
+	t.after(cleanup);
+	fs.writeFileSync(path.join(dir, "voice.ts"), `
+		const capture = navigator.mediaDevices.getUserMedia({ audio: true });
+		const options = { interrupt_response: true, turn_detection: {} };
+		const event = "conversation.item.input_audio_transcription.completed";
+		const stop = "response.cancel";
+	`);
+	const catalog = discover(dir);
+	const signals = new Set(catalog.inventory.signals.map((entry) => entry.signal));
+	for (const expected of ["microphone", "voice-interruption", "voice-transcription", "voice-turn-detection"]) {
+		assert.ok(signals.has(expected), expected);
+	}
+	assert.ok(catalog.inventory.signals.every((entry) => entry.evidence && entry.line > 0));
+	assert.ok(catalog.capabilities.every((entry) => entry.provenance === "inventory"));
+	assert.ok(catalog.platforms.every((entry) => entry.class === "inferred"));
+});
+
 function prepareTarget(t, fixture) {
 	const { dir, cleanup } = makeTempDir();
 	t.after(cleanup);

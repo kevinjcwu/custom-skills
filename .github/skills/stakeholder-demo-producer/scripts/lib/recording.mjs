@@ -2,7 +2,161 @@ import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { hasControlCharacter } from "./paths.mjs";
+
+/** Stop every capture before any potentially blocking original-byte transfer. */
+export async function finalizeCapture({ stopScreen, stopAudio, saveAudio }) {
+	if (
+		![stopScreen, stopAudio, saveAudio].every((fn) => typeof fn === "function")
+	)
+		throw new Error("capture finalization requires stop and save functions");
+	const [screen, audio] = await Promise.allSettled([
+		Promise.resolve().then(stopScreen),
+		Promise.resolve().then(stopAudio),
+	]);
+	const result = {};
+	if (screen.status === "fulfilled") result.screen = screen.value;
+	else result.screenError = String(screen.reason?.message ?? screen.reason);
+	if (audio.status === "fulfilled") {
+		result.audio = { metadata: audio.value, original: null };
+		if (audio.value?.byteLength) {
+			try {
+				result.audio.original = await saveAudio(audio.value);
+			} catch (error) {
+				result.audioError = String(error.message ?? error);
+				if (error.partialOriginal) result.audio.partialOriginal = error.partialOriginal;
+			}
+		}
+	} else result.audioError = String(audio.reason?.message ?? audio.reason);
+	return result;
+}
+
+/** Read bounded base64 chunks rather than serializing a whole byte array. */
+export async function readPageBytes({
+	readChunk,
+	expectedBytes,
+	chunkBytes = 48 * 1024,
+	maxBytes = 16 * 1024 * 1024,
+	onChunk,
+	signal,
+}) {
+	if (
+		typeof readChunk !== "function" ||
+		!Number.isSafeInteger(expectedBytes) ||
+		expectedBytes < 0 ||
+		!Number.isSafeInteger(maxBytes) ||
+		maxBytes < 0 ||
+		expectedBytes > maxBytes ||
+		!Number.isSafeInteger(chunkBytes) ||
+		chunkBytes < 1 ||
+		chunkBytes > 64 * 1024 ||
+		(onChunk !== undefined && typeof onChunk !== "function")
+	)
+		throw new Error("invalid page transfer byte bound or chunk size");
+	const chunks = [];
+	for (let offset = 0; offset < expectedBytes; offset += chunkBytes) {
+		signal?.throwIfAborted();
+		const length = Math.min(chunkBytes, expectedBytes - offset);
+		const encoded = await readChunk({ offset, length });
+		if (
+			typeof encoded !== "string" ||
+			encoded.length > Math.ceil(length / 3) * 4
+		)
+			throw new Error("page chunk length exceeds its declared bound");
+		const bytes = Buffer.from(encoded, "base64");
+		if (bytes.length !== length || bytes.toString("base64") !== encoded)
+			throw new Error("page chunk length or base64 encoding is invalid");
+		// The driver may persist validated chunks before a later transfer fails.
+		await onChunk?.(bytes, { offset, expectedBytes });
+		signal?.throwIfAborted();
+		chunks.push(bytes);
+	}
+	return Buffer.concat(chunks, expectedBytes);
+}
+
+/** Capture real frames with page-clock intervals; the caller owns the deadline. */
+export async function startFrameCapture({
+	page,
+	outDir,
+	intervalMs = 100,
+	signal,
+}) {
+	if (
+		!Number.isSafeInteger(intervalMs) ||
+		intervalMs < 30 ||
+		intervalMs > 1000 ||
+		fs.realpathSync(outDir) !== path.resolve(outDir) ||
+		!fs.lstatSync(outDir).isDirectory() ||
+		fs.readdirSync(outDir).length
+	)
+		throw new Error(
+			"frame capture requires an empty real directory and a bounded interval",
+		);
+	const frames = [];
+	let stopping = false;
+	let error;
+	let lastAfter = -Infinity;
+	let ready;
+	const first = new Promise((resolve) => {
+		ready = resolve;
+	});
+	const loop = (async () => {
+		try {
+			while (!stopping) {
+				signal?.throwIfAborted();
+				const before = await page.evaluate(() => globalThis.performance.now());
+				const file = path.join(
+					outDir,
+					`${String(frames.length).padStart(6, "0")}.jpg`,
+				);
+				await page.screenshot({
+					path: file,
+					type: "jpeg",
+					quality: 85,
+					animations: "allow",
+					timeout: 5000,
+				});
+				const after = await page.evaluate(() => globalThis.performance.now());
+				if (!Number.isFinite(before) || !Number.isFinite(after) ||
+					before < lastAfter || after < before)
+					throw new Error("nonmonotonic frame capture clock");
+				lastAfter = after;
+				frames.push({
+					file,
+					pageMs: (before + after) / 2,
+					uncertaintyMs: (after - before) / 2,
+				});
+				fs.appendFileSync(
+					path.join(outDir, "frames.jsonl"),
+					`${JSON.stringify(frames.at(-1))}\n`,
+				);
+				ready();
+				await delay(Math.max(0, intervalMs - (after - before)));
+			}
+		} catch (failure) {
+			error = failure;
+			ready();
+		}
+	})();
+	await first;
+	if (error) throw error;
+	return {
+		frames,
+		async stop() {
+			stopping = true;
+			await loop;
+			if (error) throw error;
+			const endMs = await page.evaluate(() => globalThis.performance.now());
+			if (!Number.isFinite(endMs) || endMs < lastAfter)
+				throw new Error("nonmonotonic frame capture end clock");
+			return {
+				frames,
+				endMs,
+			};
+		},
+	};
+}
 
 function transcriptEntries(result) {
 	if (!Array.isArray(result?.transcript)) {

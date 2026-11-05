@@ -221,19 +221,21 @@ export async function exportReview({
 			const video = probe.streams?.find(
 				(stream) => stream.codec_type === "video",
 			);
-			const journeyMs =
+			const sourceDurationMs =
 				Number(video?.duration ?? probe.format?.duration) * 1000;
-			const journeyFrames = Number(video?.nb_read_frames ?? video?.nb_frames);
+			const sourceFrames = Number(video?.nb_read_frames ?? video?.nb_frames);
 			if (
-				!Number.isFinite(journeyMs) ||
-				journeyMs <= 0 ||
-				!Number.isSafeInteger(journeyFrames) ||
-				journeyFrames < 1
+				!Number.isFinite(sourceDurationMs) ||
+				sourceDurationMs <= 0 ||
+				!Number.isSafeInteger(sourceFrames) ||
+				sourceFrames < 1
 			) {
 				throw new Error("screen recording has no positive video duration");
 			}
+			const journeyMs = roundedSegmentMs(sourceDurationMs);
+			const journeyFrames = Math.round((journeyMs * PROFILE.fps) / 1000);
 			const validatedTracks = tracks.map((track, index) =>
-				validateTrack(track, journeyMs, index),
+				validateTrack(track, sourceDurationMs, index),
 			);
 			const introNarration = await synthesizeNarration({
 				text: intro,
@@ -287,10 +289,12 @@ export async function exportReview({
 						audio,
 						"-t",
 						(durationMs / 1000).toFixed(6),
+						"-frames:v",
+						String(Math.round((durationMs * PROFILE.fps) / 1000)),
 						"-vf",
-						`scale=${PROFILE.width}:${PROFILE.height}:force_original_aspect_ratio=decrease,pad=${PROFILE.width}:${PROFILE.height}:(ow-iw)/2:(oh-ih)/2,setsar=1`,
+						`scale=${PROFILE.width}:${PROFILE.height}:force_original_aspect_ratio=decrease,pad=${PROFILE.width}:${PROFILE.height}:(ow-iw)/2:(oh-ih)/2,setsar=1,setpts=N/(${PROFILE.fps}*TB)`,
 						"-af",
-						`aresample=${PROFILE.sampleRate},apad`,
+						`aresample=${PROFILE.sampleRate},apad,atrim=end_sample=${Math.round(durationMs * PROFILE.fps / 1000) * PROFILE.sampleRate / PROFILE.fps},asetpts=N/SR/TB`,
 						"-r",
 						String(PROFILE.fps),
 						"-c:v",
@@ -358,9 +362,13 @@ export async function exportReview({
 				"-map",
 				"[a]",
 				"-vf",
-				`scale=${PROFILE.width}:${PROFILE.height}:force_original_aspect_ratio=decrease,pad=${PROFILE.width}:${PROFILE.height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${PROFILE.fps}`,
+				`scale=${PROFILE.width}:${PROFILE.height}:force_original_aspect_ratio=decrease,pad=${PROFILE.width}:${PROFILE.height}:(ow-iw)/2:(oh-ih)/2,setsar=1,setpts=PTS-STARTPTS,fps=${PROFILE.fps},tpad=stop_mode=clone:stop_duration=${1 / PROFILE.fps},trim=end_frame=${journeyFrames},setpts=N/(${PROFILE.fps}*TB)`,
 				"-t",
 				durationSec,
+				"-frames:v",
+				String(journeyFrames),
+				"-r",
+				String(PROFILE.fps),
 				"-c:v",
 				"libx264",
 				"-profile:v",
@@ -387,6 +395,27 @@ export async function exportReview({
 				outputs["outro.mp4"],
 			);
 			const intermediate = outputs["review-without-captions.mp4"];
+			const introFrames = Math.round((introSegmentMs * PROFILE.fps) / 1000);
+			const outroFrames = Math.round((outroSegmentMs * PROFILE.fps) / 1000);
+			const expectedFrames = introFrames + journeyFrames + outroFrames;
+			const segmentFrames = [introFrames, journeyFrames, outroFrames];
+			const segmentSamples = segmentFrames.map(
+				(frames) => frames * PROFILE.sampleRate / PROFILE.fps,
+			);
+			// AAC decodes to padded blocks; concat must use the planned sample clocks.
+			const assemblyFilters = segmentFrames.map(
+				(_, index) =>
+					`[${index}:v]setsar=1,setpts=N/(${PROFILE.fps}*TB)[v${index}];` +
+					`[${index}:a]aresample=${PROFILE.sampleRate},apad,atrim=end_sample=${segmentSamples[index]},asetpts=N/SR/TB[a${index}]`,
+			);
+			assemblyFilters.push("[v0][a0][v1][a1][v2][a2]concat=n=3:v=1:a=1[v][a]");
+			const segmentChecks = [];
+			for (const [index, name] of ["intro.mp4", "journey.mp4", "outro.mp4"].entries()) {
+				const segmentProbe = await probeMedia(paths, outputs[name], envForTools);
+				const failures = profileMismatches(segmentProbe, segmentFrames[index]);
+				if (failures.length) throw new Error(`segment ${name} failed checks: ${failures.join(", ")}`);
+				segmentChecks.push({ name, frames: segmentFrames[index], audioSamples: segmentSamples[index] });
+			}
 			await ffmpegRun(
 				paths,
 				[
@@ -398,11 +427,13 @@ export async function exportReview({
 					"-i",
 					outputs["outro.mp4"],
 					"-filter_complex",
-					"[0:v]fps=30,setsar=1[v0];[1:v]fps=30,setsar=1[v1];[2:v]fps=30,setsar=1[v2];[v0][0:a][v1][1:a][v2][2:a]concat=n=3:v=1:a=1[v][a]",
+					assemblyFilters.join(";"),
 					"-map",
 					"[v]",
 					"-map",
 					"[a]",
+					"-r",
+					String(PROFILE.fps),
 					"-c:v",
 					"libx264",
 					"-profile:v",
@@ -478,10 +509,6 @@ export async function exportReview({
 					finalProbe.streams?.find((stream) => stream.codec_type === "video")
 						?.duration ?? finalProbe.format?.duration,
 				) * 1000;
-			const expectedFrames =
-				Math.round((introSegmentMs * PROFILE.fps) / 1000) +
-				journeyFrames +
-				Math.round((outroSegmentMs * PROFILE.fps) / 1000);
 			const mismatches = profileMismatches(finalProbe, expectedFrames);
 			const faststart = moovBeforeMdat(outputs["review.mp4"]);
 			if (
@@ -526,7 +553,10 @@ export async function exportReview({
 						path: screen.file,
 						bytes: screen.bytes,
 						sha256: sha256File(screen.file),
-						treatment: "uncut recorded journey",
+						treatment: "uncut recorded journey; timestamp-based 30fps conversion, at most one cloned tail frame to the next output-frame boundary; originals unchanged",
+						sourceFrames,
+						sourceDurationMs,
+						outputFrames: journeyFrames,
 					},
 					tracks: validatedTracks.map(
 						({
@@ -562,6 +592,12 @@ export async function exportReview({
 					profileMismatches: mismatches,
 					faststart,
 					expectedFrames,
+					assembly: {
+						videoFrames: segmentFrames,
+						audioSamples: segmentSamples,
+						segments: segmentChecks,
+						treatment: "reset video frame clocks and bound decoded segment audio to planned samples; remove AAC padding, not recorded actions",
+					},
 				},
 				limitations: [
 					...limitations,

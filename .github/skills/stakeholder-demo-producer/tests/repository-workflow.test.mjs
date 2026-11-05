@@ -122,7 +122,7 @@ test(
 		skip:
 			runtimeAvailable && productionEnabled
 				? false
-				: "fixture export production is opt-in and its two-run allowance has been consumed",
+				: "fixture export production is opt-in",
 	},
 	async (t) => {
 		await holdMediaLock(t);
@@ -193,7 +193,7 @@ test(
 		skip:
 			runtimeAvailable && productionEnabled
 				? false
-				: "fixture export production is opt-in and its two-run allowance has been consumed",
+				: "fixture export production is opt-in",
 	},
 	async (t) => {
 		await holdMediaLock(t);

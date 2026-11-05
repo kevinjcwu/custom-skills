@@ -168,6 +168,7 @@ These regressions do not authorize any of those prerequisites. Do not copy priva
 browser defaults, add dependencies or grow a caller under the heading of qualification.
 
 Keep integration/debugging time visible separately from setup, execution/export and human approval.
-Use explicit finite correction/time budgets; these are not independently installed monitoring unless
-such enforcement actually exists. A qualified interaction still needs an evidence-backed story and a
+Respect explicit human correction, spending and retake budgets and finite operational watchdogs; do not
+impose default preparation or review-round caps. Do not claim independent monitoring unless enforcement
+actually exists. A qualified interaction still needs an evidence-backed story and a
 human's full-file watch/listen review of any final exported video.

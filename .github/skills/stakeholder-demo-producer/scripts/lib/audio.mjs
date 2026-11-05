@@ -3,6 +3,31 @@
 // hard-codes "loud enough".
 import fs from "node:fs";
 
+/** Match the capture analyser's RMS window when comparing speech landmarks. */
+export function rmsActivityBounds(samples, sampleRate, { windowMs, thresholdRms }) {
+	const size = Math.round(sampleRate * windowMs / 1000);
+	if (
+		!(samples instanceof Float32Array) || !Number.isFinite(sampleRate) || sampleRate <= 0 ||
+		!Number.isFinite(windowMs) || windowMs <= 0 || !Number.isSafeInteger(size) || size < 1 ||
+		!Number.isFinite(thresholdRms) || thresholdRms <= 0 || thresholdRms > 1
+	) throw new Error("invalid RMS activity window");
+	let firstMs = null;
+	let lastMs = null;
+	for (let i = 0; i < samples.length; i += size) {
+		const end = Math.min(i + size, samples.length);
+		let sum = 0;
+		for (let j = i; j < end; j++) {
+			if (!Number.isFinite(samples[j])) throw new Error("nonfinite audio sample");
+			sum += samples[j] ** 2;
+		}
+		if (Math.sqrt(sum / size) > thresholdRms) {
+			firstMs ??= i / sampleRate * 1000;
+			lastMs = end / sampleRate * 1000;
+		}
+	}
+	return { firstMs, lastMs };
+}
+
 /** @returns {{sampleRate: number, channels: number, samples: Float32Array}} mono floats in [-1, 1] (channels averaged) */
 export function readWav(file) {
 	const buffer = fs.readFileSync(file);

@@ -12,10 +12,27 @@ function frontmatter(text) {
 	const match = /^---\n([\s\S]*?)\n---\n/.exec(text);
 	assert.ok(match, "SKILL.md starts with YAML frontmatter");
 	const fields = {};
-	for (const line of match[1].split("\n")) {
+	const lines = match[1].split("\n");
+	for (let index = 0; index < lines.length; index++) {
+		const line = lines[index];
 		const field = /^([a-z-]+):\s*(.*)$/.exec(line);
 		assert.ok(field, `frontmatter line is a simple key: value pair: ${line}`);
-		fields[field[1]] = field[2];
+		let value = field[2];
+		if (value === ">-") {
+			const continuation = [];
+			while (lines[index + 1]?.startsWith("  ")) {
+				continuation.push(lines[++index].slice(2));
+			}
+			assert.ok(continuation.length, "folded scalar has content");
+			value = continuation.join(" ");
+		} else {
+			assert.doesNotMatch(
+				value,
+				/:\s/,
+				"plain frontmatter scalars must not contain mapping syntax",
+			);
+		}
+		fields[field[1]] = value;
 	}
 	return fields;
 }
@@ -91,11 +108,35 @@ test("the agent-orchestrated route and its reusable utilities are packaged", () 
 	);
 	assert.match(
 		workflow,
-		/Helper-development permission does not authorize recording/,
+		/Helper-development permission alone does not authorize recording/,
 	);
 	assert.match(workflow, /Hard stop/);
 	assert.match(workflow, /incomplete review candidate/);
 	assert.match(workflow, /fresh independent-session acceptance/);
+});
+
+test("portable workflow discusses showcase once and commissions repo-local voice gaps without review budgets", () => {
+	const workflow = fs.readFileSync(
+		path.join(SKILL_ROOT, "references", "repository-workflow.md"),
+		"utf8",
+	);
+	const voice = fs.readFileSync(
+		path.join(SKILL_ROOT, "references", "voice-integration.md"),
+		"utf8",
+	);
+	assert.match(workflow, /one approval covering/);
+	assert.match(workflow, /no fixed round/);
+	assert.doesNotMatch(
+		workflow,
+		/30 active minutes|two harmless fixture corrections|at most four helper/,
+	);
+	assert.match(voice, /Configuration alone never proves a feature works/);
+	assert.match(voice, /host\/user must permit delegation/);
+	assert.match(voice, /never implied by unlimited review/);
+	assert.match(voice, /not a mandatory cross-app protocol/);
+	assert.ok(
+		fs.existsSync(path.join(SKILL_ROOT, "scripts", "lib", "voice-capture.mjs")),
+	);
 });
 
 test("skill sources are portable: no host paths, owner names or endpoints", () => {
@@ -178,7 +219,7 @@ test("blocked capabilities are listed in the lifecycle and commands", () => {
 	}
 });
 
-test("the distributed package ships no prebuilt caller, audio route, network namespace or review job", () => {
+test("the distributed package ships no app-specific caller, private audio route, network namespace or review job", () => {
 	// Interactions a target needs beyond the generic adapters are written by the agent per run (run-local helpers).
 	const archived = [
 		"voice-caller",

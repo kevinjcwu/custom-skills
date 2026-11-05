@@ -9,7 +9,7 @@
 - Passive discovery, contracts and hashing, passive preflight, run records, claim ledger and structural QA.
 - **Offline voice qualification evidence**: a pure readiness/current-turn evidence evaluator and
   synthetic generic-helper dispatch/deadline/cleanup regressions. No app, caller, browser recording or
-  live voice integration is provided. See [voice-qualification.md](voice-qualification.md).
+  complete live voice integration is provided by that evaluator. See [voice-qualification.md](voice-qualification.md).
 - **Early browser feasibility**: `sdp feasibility` reuses an approved `demo-plan.v1` and its exact
   SHA-256. It runs only the first browser scene, which must contain 1-5 fixed actions (`goto`,
   role/name `click`, label `fill`, key `press` or visible-text `wait`). It does not run interaction
@@ -38,6 +38,10 @@ linux x64 Ubuntu 22.04 only; any other platform is reported as blocked by `setup
   helper, process, narration and export utilities. The new recording/review utilities extract full helper
   page results and assemble honest complete/incomplete review candidates. This path is covered by a
   controlled synthetic browser/helper fixture; it is not the generic CLI path or a sandbox.
+- **Optional browser voice primitives**: generated audio-only input, continuous sink-audio capture
+  retaining silence, activity timestamps and explicit cleanup. These are building blocks for an approved
+  repo-local adapter, not an automatic caller or proof of speech attribution or picture/sound alignment.
+  See [voice-integration.md](voice-integration.md).
 - **Offline speech synthesis** of narration for one audience, with no network.
 - **Timed captions** (WebVTT) derived from the synthesized narration durations, labelled as a generated voice.
 - **Export**: `produce` writes one H.264/AAC MP4 (1280x720, 30 fps, faststart) per audience. Browser scenes
@@ -55,8 +59,8 @@ or the report:
 
 - Automatic release: every export needs a person to watch and listen to the whole exact file.
   Structural export checks are not that review.
-- Essential device interaction in the fast path: required microphone/device capture, user speech to the
-  app and private audio routing are not provided as generic capabilities. A bounded approved
+- Essential device interaction in the fast path: physical microphone/device capture, a complete
+  conversational caller and private audio routing are not provided as generic capabilities. A bounded approved
   per-demo helper/driver may be developed and tested for a specific authorized target; this is not
   universal voice support. An ordinary-browser-only plan may omit an essential interaction honestly.
 - Network or filesystem sandboxing of the app's processes or of run-local helpers: they reach whatever
